@@ -1,0 +1,50 @@
+# © Copyright IBM Corporation 2021
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+license: accept
+queueManager:
+  nativeha:
+    enable: true
+    tls:
+      secretName: mqperfcert
+  mqscConfigMaps:
+    - name: mqperfmqsc
+      items:
+        - mq.mqsc
+  qminiConfigMaps:
+    - name: mqperfmqsc
+      items:
+        - qm.ini
+  envVariables:
+    - name: MQ_APP_PASSWORD
+      value: mqcloudnative
+persistence:
+  qmPVC:
+    enable: true
+pki:
+  keys:
+    - name: default
+      secret:
+        secretName: mqperfcert
+        items:
+          - tls.key
+          - tls.crt
+metadata:
+  annotations:
+    productName: "IBM MQ Advanced for Non-Production with CP4I License"
+    productID: "21dfe9a0f00f444f888756d835334909"
+    productChargedContainers: "qmgr"
+    productMetric: "VIRTUAL_PROCESSOR_CORE"
+    productCloudpakRatio: "4:1"
+    cloudpakName: "IBM Cloud Pak for Integration"
+    cloudpakId: "c8b82d189e7545f0892db9ef2731b90d"

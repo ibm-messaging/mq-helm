@@ -1,0 +1,44 @@
+# © Copyright IBM Corporation 2021
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#
+# This file controls the test application, customize the values below prior
+# to running testAll.sh
+
+# The host and port that should be used for TLS communication
+QUEUEMANAGER_TLS_HOST=perfhelm-ibm-mq.cp4i
+QUEUEMANAGER_TLS_PORT=1414
+
+# The endpoint that should be used for non-TLS communication
+QUEUEMANAGER_HOST=perfhelm-ibm-mq.cp4i
+QUEUEMANAGER_PORT=1414
+
+# CPH Image location
+IMAGE_LOCATION=image-registry.openshift-image-registry.svc:5000/cp4i/cphtestp
+REGISTRY_PULL_SECRET=
+
+# Core and memory setting
+# It is recommended that you assign 150% of the Queue Manager cores to the
+# application, to avoid any bottlenecks. The memory should be the corresponding
+# core count in Gi (for instance if 1 core then 1 Gi, 4 cores then 4Gi).
+CORE=2
+MEMORY=2Gi
+
+# Name of the Queue Manager that will be connected to
+QMGR_NAME=perfhelm
+
+# The name of the stateful set for the queue manager. This is used to set a
+# anti affinity rule to assure that the same worker node does not host the
+# driving application and the Queue Manager.
+STATEFUL_SET_NAME_OF_QMGR=perfhelm-ibm-mq

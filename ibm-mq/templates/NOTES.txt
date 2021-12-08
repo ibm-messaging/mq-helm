@@ -1,0 +1,15 @@
+{{- if .Values.route.openShiftRoute.webconsole }}
+Get the MQ Console URL by running these commands:
+  export CONSOLE_ROUTE=$(kubectl get route {{ include "ibm-mq.fullname" . }}-web -n {{ .Release.Namespace }} -o jsonpath="{.spec.host}")
+  echo https://$CONSOLE_ROUTE/ibmmq/console
+{{ end -}}
+
+{{- if .Values.route.nodePort.webconsole }}
+Get the MQ Console URL by running these commands:
+  export CONSOLE_PORT=$(kubectl get services {{ include "ibm-mq.fullname" . }}-web -n {{ .Release.Namespace }} -o jsonpath="{.spec.ports[?(@.port=="9443")].nodePort}")
+  export CONSOLE_IP=$(kubectl get nodes -o jsonpath={.items[*].status.addresses['?(@.type=="ExternalIP")].address}' | awk '{print $1;}')
+  echo https://$CONSOLE_IP:$CONSOLE_PORT/ibmmq/console
+{{ end -}}
+
+The MQ connection information for clients inside the cluster is as follows:
+  {{ include "ibm-mq.fullname" . }}:1414

@@ -1,0 +1,78 @@
+# © Copyright IBM Corporation 2021
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    run: "cphtestnonpersistent$RUN_ID"
+  name: "cphtestnonpersistent$RUN_ID"
+spec:
+  template:
+    metadata:
+      labels:
+        run: cphtestp
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: statefulSetName
+                    operator: In
+                    values:
+                      - "$STATEFUL_SET_NAME_OF_QMGR"
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - env:
+        - name: LICENSE
+          value: accept
+        - name: MQ_QMGR_HOSTNAME
+          value: "$QUEUEMANAGER_HOST"
+        - name: MQ_QMGR_PORT
+          value: "$QUEUEMANAGER_PORT"
+        - name: MQ_USERID
+          value: "app"
+        - name: MQ_PASSWORD
+          value: "mqcloudnative"
+        - name: MQ_QMGR_CHANNEL
+          value: NOTLSCHL
+        - name: MQ_RESPONDER_THREADS
+          value: "250"
+        - name: MQ_NON_PERSISTENT
+          value: "1"
+        - name: MQ_QMGR_NAME
+          value: "$QMGR_NAME"
+        - name: MQ_DATA
+          value:
+        - name: MQ_RESULTS_CSV
+          value: "true"
+        - name: MQ_RESULTS
+          value: "false"
+        image: "$IMAGE_LOCATION"
+        imagePullPolicy: Always
+        name: cphtestp
+        resources:
+          requests:
+            memory: "$MEMORY"
+            cpu: "$CORE"
+          limits:
+            memory: "$MEMORY"
+            cpu: "$CORE"
+        terminationMessagePath: /dev/termination-log
+      imagePullSecrets:
+      - name: "$REGISTRY_PULL_SECRET"
+      dnsPolicy: ClusterFirst
+      restartPolicy: OnFailure
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

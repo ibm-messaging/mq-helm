@@ -1,0 +1,486 @@
+# © Copyright IBM Corporation 2021
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+{{ $statefulSetName := include "ibm-mq.fullname" . }}
+{{ $dataVolumeClaimName := include "ibm-mq.pvcDataName" . }}
+{{ $qmVolumeClaimName := include "ibm-mq.pvcQMName" . }}
+{{ $logVolumeClaimName  := include "ibm-mq.pvcLogName" . }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $statefulSetName }}
+  labels:
+    {{- include "ibm-mq.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+{{- include "ibm-mq.selectorLabels" . | nindent 6 }}
+  serviceName: qm
+  {{- if .Values.queueManager.nativeha.enable }}
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: OnDelete
+  replicas: 3
+  {{- else }}
+  replicas: 1
+  updateStrategy:
+    type: {{ .Values.queueManager.updateStrategy }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+      {{- with .Values.metadata.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+      {{- with .Values.metadata.labels }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+        {{- include "ibm-mq.labels" . | nindent 8 }}
+        statefulSetName: {{ $statefulSetName }}
+    spec:
+      affinity:
+      {{- if .Values.queueManager.nativeha.enable }}
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: statefulSetName
+                    operator: In
+                    values:
+                      - {{ $statefulSetName }}
+              topologyKey: kubernetes.io/hostname
+      {{- end }}
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - "amd64"
+                - "s390x"
+                - "ppc64le"
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                - "linux"
+              {{- range $index, $source := .Values.affinity.nodeAffinity.matchExpressions }}
+              - key: {{ $source.key }}
+                operator: {{ $source.operator }}
+                values:
+                {{- range $source.values }}
+                - {{ . }}
+                {{- end }}
+              {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+      {{- range $index, $source := .Values.tolerations }}
+      - key: {{ $source.key }}
+        operator: {{ $source.operator }}
+        value: {{ $source.value }}
+        effect: {{ $source.effect }}
+        {{- if $source.tolerationSeconds }}
+        tolerationSeconds: {{ $source.tolerationSeconds }}
+        {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.image.pullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
+      {{- end }}
+      serviceAccountName: {{ include "ibm-mq.fullname" ( . ) }}
+      securityContext:
+        fsGroup: {{ .Values.security.context.fsGroup }}
+        supplementalGroups:
+        {{- range $group := .Values.security.context.supplementalGroups }}
+          - {{ $group -}}
+        {{ end }}
+      {{- if .Values.queueManager.nativeha.tls }}
+      {{- if .Values.queueManager.nativeha.tls.secretName }}
+      volumes:
+      {{- else if or (or (or (or (or (.Values.pki.trust) (.Values.pki.keys)) (.Values.queueManager.mqscConfigMaps)) (.Values.queueManager.qminiConfigMaps)) (.Values.queueManager.mqscSecrets)) (.Values.queueManager.qminiSecrets) }}
+      volumes:
+      {{- end }}
+      {{- else if or (or (or (or (or (.Values.pki.trust) (.Values.pki.keys)) (.Values.queueManager.mqscConfigMaps)) (.Values.queueManager.qminiConfigMaps)) (.Values.queueManager.mqscSecrets)) (.Values.queueManager.qminiSecrets) }}
+      volumes:
+      {{- end}}
+      {{- if .Values.queueManager.nativeha.tls }}
+      {{- if .Values.queueManager.nativeha.tls.secretName }}
+      - name: ha-tls
+        secret:
+          secretName: {{ .Values.queueManager.nativeha.tls.secretName }}
+          defaultMode: 288
+      {{- end }}
+      {{- end }}
+      {{- range $index, $source := .Values.pki.trust }}
+      {{- if $source.secret }}
+      - name: trust{{- $index }}
+        secret:
+          secretName: {{ $source.secret.secretName }}
+          defaultMode: 0440
+          items:
+          {{- range $source.secret.items }}
+            - key: {{ . }}
+              path: {{ . }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- range $index, $source := .Values.pki.keys }}
+      {{- if $source.secret }}
+      - name: {{ $source.name }}
+        secret:
+          secretName: {{ $source.secret.secretName }}
+          defaultMode: 0440
+          items:
+          {{- range $source.secret.items }}
+            - key: {{ . }}
+              path: {{ . }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- range $index, $source := .Values.queueManager.mqscConfigMaps }}
+      {{- if $source.items }}
+      - name: mqsc-cm-{{ $source.name }}
+        configMap:
+          name: {{ $source.name }}
+          defaultMode: 420
+          items:
+          {{- range $source.items }}
+            - key: {{ . }}
+              path: {{ . }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- range $index, $source := .Values.queueManager.qminiConfigMaps }}
+      {{- if $source.items }}
+      - name: ini-cm-{{ $source.name }}
+        configMap:
+          name: {{ $source.name }}
+          defaultMode: 420
+          items:
+          {{- range $source.items }}
+            - key: {{ . }}
+              path: {{ . }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- range $index, $source := .Values.queueManager.mqscSecrets }}
+      {{- if $source.items }}
+      - name: mqsc-secret-{{ $source.name }}
+        secret:
+          secretName: {{ $source.name }}
+          defaultMode: 420
+          items:
+          {{- range $source.items }}
+            - key: {{ . }}
+              path: {{ . }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- range $index, $source := .Values.queueManager.qminiSecrets }}
+      {{- if $source.items }}
+      - name: ini-secret-{{ $source.name }}
+        secret:
+          secretName: {{ $source.name }}
+          defaultMode: 420
+          items:
+          {{- range $source.items }}
+            - key: {{ . }}
+              path: {{ . }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{.Values.queueManager.terminationGracePeriodSeconds}}
+      containers:
+        - name: qmgr
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          terminationMessagePath: "/run/termination-log"
+          ports:
+          - containerPort: 1414
+          - containerPort: 9443
+          - containerPort: 9157
+          {{- if .Values.queueManager.nativeha.enable }}
+          - containerPort: 9414
+          {{- end }}
+          env:
+          - name: LICENSE
+            value: {{ .Values.license }}
+          - name: MQ_QMGR_NAME
+            value: "{{ .Values.queueManager.name | default .Release.Name | replace "-" "" }}"
+          - name: MQ_NATIVE_HA
+            value: "{{ .Values.queueManager.nativeha.enable | default false }}"
+          - name: AMQ_CLOUD_PAK
+            value: "true"
+          - name: MQ_NATIVE_HA_INSTANCE_0_NAME
+            value: {{ include "ibm-mq.pod0.name" . }}
+          - name: MQ_NATIVE_HA_INSTANCE_0_REPLICATION_ADDRESS
+            value: {{ include "ibm-mq.pod0.service" . }}(9414)
+          - name: MQ_NATIVE_HA_INSTANCE_1_NAME
+            value: {{ include "ibm-mq.pod1.name" . }}
+          - name: MQ_NATIVE_HA_INSTANCE_1_REPLICATION_ADDRESS
+            value: {{ include "ibm-mq.pod1.service" . }}(9414)
+          - name: MQ_NATIVE_HA_INSTANCE_2_NAME
+            value: {{ include "ibm-mq.pod2.name" . }}
+          - name: MQ_NATIVE_HA_INSTANCE_2_REPLICATION_ADDRESS
+            value: {{ include "ibm-mq.pod2.service" . }}(9414)
+          - name: LOG_FORMAT
+            value: {{ .Values.log.format | default "basic" }}
+          - name: MQ_ENABLE_METRICS
+            value: "{{ .Values.metrics.enabled | default false }}"
+          - name: DEBUG
+            value: "{{ .Values.log.debug | default false }}"
+          - name: MQ_ENABLE_TRACE_STRMQM
+            value: "{{ .Values.trace.strmqm | default false }}"
+          - name: MQ_ENABLE_TRACE_CRTMQDIR
+            value: "{{ .Values.trace.crtmqdir | default false }}"
+          - name: MQ_ENABLE_TRACE_CRTMQM
+            value: "{{ .Values.trace.crtmqm | default false }}"
+          - name: MQ_EPHEMERAL_PREFIX
+            value: "/run/mqm"
+          - name: MQ_GRACE_PERIOD
+            value: "{{sub .Values.queueManager.terminationGracePeriodSeconds 1}}"
+          {{- range $index, $source := .Values.queueManager.envVariables }}
+          - name: {{ $source.name }}
+            value: "{{ $source.value }}"
+          {{- end }}
+          {{- if .Values.queueManager.nativeha.tls }}
+          {{- if (.Values.queueManager.nativeha.tls.secretName) }}
+          - name: MQ_NATIVE_HA_TLS
+            value: "true"
+          - name: MQ_NATIVE_HA_CIPHERSPEC
+            value: "{{ .Values.queueManager.nativeha.tls.cipherSpec | default "ANY_TLS12_OR_HIGHER"}}"
+          {{- end }}
+          {{- end }}
+          {{- if .Values.queueManager.nativeha.tls }}
+          {{- if .Values.queueManager.nativeha.tls.secretName }}
+          volumeMounts:
+          {{- else if or (or (or (or (or (or (.Values.pki.trust) (.Values.pki.keys)) (.Values.queueManager.mqscConfigMaps)) (.Values.queueManager.qminiConfigMaps)) (.Values.queueManager.mqscSecrets)) (.Values.queueManager.qminiSecrets)) ((.Values.persistence.qmPVC.enable))}}
+          volumeMounts:
+          {{- end }}
+          {{- else if or (or (or (or (or (or (.Values.pki.trust) (.Values.pki.keys)) (.Values.queueManager.mqscConfigMaps)) (.Values.queueManager.qminiConfigMaps)) (.Values.queueManager.mqscSecrets)) (.Values.queueManager.qminiSecrets)) ((.Values.persistence.qmPVC.enable))}}
+          volumeMounts:
+          {{- end}}
+          {{- if .Values.queueManager.nativeha.tls }}
+          {{- if .Values.queueManager.nativeha.tls.secretName }}
+          - name: ha-tls
+            readOnly: true
+            mountPath: /etc/mqm/ha/pki/keys/ha
+          {{- end }}
+          {{- end }}
+          {{- if .Values.pki.trust }}
+          {{- range $index, $source := .Values.pki.trust }}
+          - name: trust{{- $index }}
+            mountPath: "/etc/mqm/pki/trust/{{- $index }}"
+            readOnly: true
+          {{- end }}
+          {{- end }}
+          {{- if .Values.pki.keys }}
+          {{- range $index, $source := .Values.pki.keys }}
+          - name: {{ $source.name }}
+            mountPath: "/etc/mqm/pki/keys/{{- $source.name }}"
+            readOnly: true
+          {{- end }}
+          {{- end }}
+          {{- if .Values.queueManager.mqscConfigMaps }}
+          {{- range $index, $source := .Values.queueManager.mqscConfigMaps }}
+          {{- range $index, $item := $source.items }}
+          - name: mqsc-cm-{{ $source.name }}
+            mountPath: "/etc/mqm/{{- $item }}"
+            subPath: "{{- $item }}"
+            readOnly: true
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.queueManager.qminiConfigMaps }}
+          {{- range $index, $source := .Values.queueManager.qminiConfigMaps }}
+          {{- range $index, $item := $source.items }}
+          - name: ini-cm-{{ $source.name }}
+            mountPath: "/etc/mqm/{{- $item }}"
+            subPath: "{{- $item }}"
+            readOnly: true
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.queueManager.mqscSecrets }}
+          {{- range $index, $source := .Values.queueManager.mqscSecrets }}
+          {{- range $index, $item := $source.items }}
+          - name: mqsc-secret-{{ $source.name }}
+            mountPath: "/etc/mqm/{{- $item }}"
+            subPath: "{{- $item }}"
+            readOnly: true
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.queueManager.qminiSecrets }}
+          {{- range $index, $source := .Values.queueManager.qminiSecrets }}
+          {{- range $index, $item := $source.items }}
+          - name: ini-secret-{{ $source.name }}
+            mountPath: "/etc/mqm/{{- $item }}"
+            subPath: "{{- $item }}"
+            readOnly: true
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.persistence.qmPVC.enable }}
+          - mountPath: "/mnt/mqm"
+            name: {{ $qmVolumeClaimName }}
+          {{- end }}
+          {{- if .Values.persistence.dataPVC.enable }}
+          - mountPath: "/mnt/mqm-data"
+            name: {{ $dataVolumeClaimName }}
+          {{- end }}
+          {{- if .Values.persistence.logPVC.enable }}
+          - mountPath: "/mnt/mqm-log"
+            name: {{ $logVolumeClaimName }}
+          {{- end }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            {{- if .Values.security.runAsUser }}
+            runAsUser: {{ .Values.security.runAsUser }}
+            {{- end }}
+            runAsNonRoot: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          # Set liveness probe to determine if the queue manager is running
+          livenessProbe:
+            exec:
+              command:
+              - chkmqhealthy
+            {{- if .Values.queueManager.nativeha.enable }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds | default 0 }}
+            {{- else }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds | default 90 }}
+            {{- end }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+          # Set readiness probe to determine if the MQ listener is running
+          readinessProbe:
+            exec:
+              command:
+              - chkmqready
+            {{- if .Values.queueManager.nativeha.enable }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds | default 0 }}
+            {{- else }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds | default 10 }}
+            {{- end }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          {{- if .Values.queueManager.nativeha.enable }}
+          startupProbe:
+            exec:
+              command:
+              - chkmqstarted
+            timeoutSeconds: {{ .Values.startupProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+            successThreshold: {{ .Values.startupProbe.successThreshold }}
+            failureThreshold: {{ .Values.startupProbe.failureThreshold }}
+          {{- end }}
+          resources:
+            limits:
+{{ toYaml .Values.resources.limits | indent 14 }}
+            requests:
+{{ toYaml .Values.resources.requests | indent 14 }}
+      {{- if .Values.security.initVolumeAsRoot }}
+      initContainers:
+        - name: qmgr-init
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          terminationMessagePath: "/run/termination-log"
+          command: ["runmqserver"]
+          args: ["-i"]
+          env:
+          - name: LICENSE
+            value: {{ .Values.license }}
+          - name: MQ_QMGR_NAME
+            value: "{{ .Values.queueManager.name | default .Release.Name | replace "-" "" }}"
+          - name: MQ_NATIVE_HA
+            value: "{{ .Values.queueManager.nativeha.enable | default false }}"
+          - name: LOG_FORMAT
+            value: {{ .Values.log.format | default "basic" }}
+          - name: DEBUG
+            value: "{{ .Values.log.debug | default false }}"
+          {{- if .Values.persistence.dataPVC.enable }}
+          volumeMounts:
+          - mountPath: "/mnt/mqm"
+            name: {{ $dataVolumeClaimName }}
+          {{- end }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+            runAsUser: 0
+            privileged: false
+            capabilities:
+              add:
+                - CHOWN
+                - FOWNER
+                - DAC_OVERRIDE
+              drop:
+                - ALL
+      {{- end }}
+  volumeClaimTemplates:
+  {{- if .Values.persistence.dataPVC.enable }}
+  - metadata:
+      name: {{ $dataVolumeClaimName }}
+      labels:
+{{- include "ibm-mq.labels" . | nindent 8 }}
+    spec:
+      # If present, use the storageClassName from the values.yaml, else use the
+      # default storageClass setup by Kubernetes Administrator
+      #
+      # Setting storageClassName to nil means use the default storage class
+      storageClassName: {{ default nil .Values.persistence.dataPVC.storageClassName | quote }}
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.persistence.dataPVC.size | quote }}
+  {{- end }}
+  {{- if .Values.persistence.logPVC.enable }}
+  - metadata:
+      name: {{ $logVolumeClaimName }}
+      labels:
+{{- include "ibm-mq.labels" . | nindent 8 }}
+    spec:
+      # If present, use the storageClassName from the values.yaml, else use the
+      # default storageClass setup by Kubernetes Administrator
+      #
+      # Setting storageClassName to nil means use the default storage class
+      storageClassName: {{ default nil .Values.persistence.logPVC.storageClassName | quote }}
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.persistence.logPVC.size | quote }}
+  {{- end }}
+  {{- if .Values.persistence.qmPVC.enable }}
+  - metadata:
+      name: {{ $qmVolumeClaimName }}
+      labels:
+{{- include "ibm-mq.labels" . | nindent 8 }}
+    spec:
+      # If present, use the storageClassName from the values.yaml, else use the
+      # default storageClass setup by Kubernetes Administrator
+      #
+      # Setting storageClassName to nil means use the default storage class
+      storageClassName: {{ default nil .Values.persistence.qmPVC.storageClassName | quote }}
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.persistence.qmPVC.size | quote }}
+  {{- end }}

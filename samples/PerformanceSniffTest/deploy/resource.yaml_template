@@ -1,0 +1,78 @@
+# © Copyright IBM Corporation 2021
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: mqperfmqsc
+  namespace: $TARGET_NAMESPACE
+data:
+  mq.mqsc: |-
+    define ql(APPQ)
+    define ql(REQUEST)
+    define ql(REQUEST1)
+    define ql(REQUEST2)
+    define ql(REQUEST3)
+    define ql(REQUEST4)
+    define ql(REQUEST5)
+    define ql(REQUEST6)
+    define ql(REQUEST7)
+    define ql(REQUEST8)
+    define ql(REQUEST9)
+    define ql(REQUEST10)
+    define ql(REPLY)
+    define ql(REPLY1)
+    define ql(REPLY2)
+    define ql(REPLY3)
+    define ql(REPLY4)
+    define ql(REPLY5)
+    define ql(REPLY6)
+    define ql(REPLY7)
+    define ql(REPLY8)
+    define ql(REPLY9)
+    define ql(REPLY10)
+    DEFINE CHANNEL(MQEXTERNALCHL) CHLTYPE(SVRCONN) SHARECNV(1) TRPTYPE(TCP) SSLCAUTH(OPTIONAL) SSLCIPH('ANY_TLS12_OR_HIGHER') MCAUSER('app')
+    DEFINE CHANNEL(NOTLSCHL) CHLTYPE(SVRCONN) SHARECNV(1) TRPTYPE(TCP) MCAUSER('app')
+    set chlauth(MQEXTERNALCHL) TYPE(BLOCKUSER) USERLIST(NOBODY)
+    set chlauth(NOTLSCHL) TYPE(BLOCKUSER) USERLIST(NOBODY)
+    SET CHLAUTH('NOTLSCHL') TYPE(USERMAP) CLNTUSER('mqperf') USERSRC(MAP) MCAUSER('app') ADDRESS('*')
+    SET CHLAUTH('MQEXTERNALCHL') TYPE(USERMAP) CLNTUSER('mqperf') USERSRC(MAP) MCAUSER('app') ADDRESS('*')
+    ALTER QMGR CONNAUTH('')
+    REFRESH SECURITY TYPE(CONNAUTH)
+    SET AUTHREC PRINCIPAL('app') OBJTYPE(QMGR) AUTHADD(CONNECT,INQ)
+    SET AUTHREC PROFILE('APPQ') PRINCIPAL('app') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+    SET AUTHREC PROFILE('REQUEST') PRINCIPAL('app') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+    SET AUTHREC PROFILE('REQUEST*') PRINCIPAL('app') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+    SET AUTHREC PROFILE('REPLY') PRINCIPAL('app') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+    SET AUTHREC PROFILE('REPLY*') PRINCIPAL('app') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+  qm.ini: |-
+    Channels:
+      MaxChannels=999999
+      MaxActiveChannels=999999
+      MQIBindType=FASTPATH
+    Log:
+      LogPrimaryFiles=64
+      LogSecondaryFiles=2
+    TuningParameters:
+      DefaultPQBufferSize=10485760
+      DefaultQBufferSize=10485760
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: mqperfcert
+  namespace: $TARGET_NAMESPACE
+data:
+  tls.key: $QM_KEY
+  tls.crt: $QM_CERT
+type: Opaque
