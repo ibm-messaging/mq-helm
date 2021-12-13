@@ -22,4 +22,4 @@ export APP_CERT=$(cat ../../genericresources/createcerts/application.crt | base6
 
 oc apply -f mtlsqm.yaml
 
-helm install secureapphelm ../../../ibm-mq -f ibmpower.yaml
+helm install secureapphelm ../../../charts/ibm-mq -f ibmpower.yaml

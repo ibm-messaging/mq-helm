@@ -41,7 +41,7 @@ See the **configuration** section for how to configure these values.
 
 ## Installing the Chart
 
-> **Tip**: A [samples directory](../samples/README.md) is available that demonstrates how to install the chart in a number of common environments. For first time users it is suggested that this is used.
+> **Tip**: A [samples directory](../../samples/README.md) is available that demonstrates how to install the chart in a number of common environments. For first time users it is suggested that this is used.
 
 Install the chart, specifying the release name (for example `nativeha`) and Helm chart name `ibm-mq` with the following command:
 
@@ -61,15 +61,15 @@ To understand how to update a deployed chart there are two aspects that need to 
 
 The Kubernetes [StatefulSet rolling update](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#rolling-updates) works by updating one replica at a time, not attempting to update another "until an updated Pod is Running and Ready". In many situtations this is logical but in the case of Native HA this prevents all the Pods from being updated automatically. For instance in a running environment prior to an upgrade there will be three pods running, but only one ready. The first Pod that is selected to be upgraded will be restarted and one of the remaining two instances will be elected the leader. The Pod being upgraded will restart and reach the running state, but will not become ready as there is another Pod acting as the leader. To avoid this situation the updateStrategy is always set to onDelete for Native HA. This means that a script needs to be run after the helm update has been applied to ripple through the Pods deleting one after another once the previous Pod has reached a running state.
 
-A [sample script](../samples/genericresources/rollingupdate/demoRollingUpdate.sh) is provided that can be run in an interactive mode, or silently. The script has the following usage:
+A [sample script](../../samples/genericresources/rollingupdate/demoRollingUpdate.sh) is provided that can be run in an interactive mode, or silently. The script has the following usage:
 ``demoRollingUpdate [statefulSetName] [namespace]``
 where:
 * *statefulSetName*: name of the statefulSetName. This corresponds to the helm chart name with ibm-mq appended.
 * *namespace*: the Kubernetes namespace of the statefulSet     
 
 The following shows how to invoke in the two scenarios, where the helm chart deployment name is `myhelmdeployment` and the namespace is `mq`.
-* Interactive: ```manualAcceptance=false ../samples/genericresources/rollingupdate/demoRollingUpdate.sh myhelmdeployment-ibm-mq mq```
-* Automated: ```manualAcceptance=false ../samples/genericresources/rollingupdate/demoRollingUpdate.sh myhelmdeployment-ibm-mq mq```
+* Interactive: ```manualAcceptance=false ../../samples/genericresources/rollingupdate/demoRollingUpdate.sh myhelmdeployment-ibm-mq mq```
+* Automated: ```manualAcceptance=false ../../samples/genericresources/rollingupdate/demoRollingUpdate.sh myhelmdeployment-ibm-mq mq```
 
 > **Warning**: The `sample script` deletes Pods and there are many situtations where this can cause an extended downtime or the queue manager becomes unavailable. The rolling update `sample script` may need extensive changes to meet your production cloud requirements.  
 

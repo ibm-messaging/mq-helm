@@ -22,4 +22,4 @@ export APP_CERT=$(cat ../../genericresources/createcerts/application.crt | base6
 
 kubectl apply -f mtlsqm.yaml
 
-helm install secureapphelm ../../../ibm-mq -f secureapp_nativeha.yaml
+helm install secureapphelm ../../../charts/ibm-mq -f secureapp_nativeha.yaml
