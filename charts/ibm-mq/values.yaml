@@ -16,7 +16,7 @@
 license: "not accepted"
 
 image:
-  # repository is the container repository to use, which must contain IBM MQ Advanced for Developers
+  # repository is the container repository to use
   repository: ibmcom/mq
   # tag is the tag to use for the container repository
   tag: 9.2.4.0-r1
