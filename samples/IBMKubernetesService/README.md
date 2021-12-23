@@ -1,4 +1,5 @@
-# Deploying the IBM MQ Helm Chart on IBM Cloud Kubernetes Service
+# Deploying the IBM MQ Helm Chart on IBM Cloud Kubernetes Service classic infrastructure
+This sample demonstrates how to deploy on IBM Cloud Kubernetes Service using classic infrastructure.
 
 ## Pre-reqs
 Prior to using the Helm chart you will need to install/config four dependencies:
@@ -21,10 +22,10 @@ Prior to using the Helm chart you will need to install/config four dependencies:
 ## Testing
 Navigate to *../test* directory. No modifications should be required, as the endpoint configuration for your environment will be discovered automatically.
 
-1. To initiate the testing, run the **./sendMessage.sh** command. It will then connect to MQ and start sending messages immediately.
+1. To initiate the testing, run the **./sendMessage.sh <namespace>** command. It will then connect to MQ and start sending messages immediately.
 
-1. Open another terminal window and run the **./getMessage.sh** command. You should see all of the messages being sent by the sendMessaging command.
+1. Open another terminal window and run the **./getMessage.sh <namespace>** command. You should see all of the messages being sent by the sendMessaging command.
 
 1. To see how the pods work together in action, run the **kubectl get pod | grep secureapp** command on another terminal windows to view the current pods, and then delete the running pod (the one with the ready state of `1/1`) by running the command: **oc delete pod secureapphelm-ibm-mq-0** (where the pod name is customized based on which one is active). Once the active pod is deleted, the application connections will then reconnect to the other pod.
 
-1. You can clean up the resources by navigating to the *../deploy* directory and running the command **./cleanup.sh**. This will delete everything. Do not worry if you receive messages about PVCs not being found, this is a generic clean-up script and assumes a worst case scenario.
+1. You can clean up the resources by navigating to the *../deploy* directory and running the command **./cleanup.sh <namespace>**. This will delete everything. Do not worry if you receive messages about PVCs not being found, this is a generic clean-up script and assumes a worst case scenario.

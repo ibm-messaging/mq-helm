@@ -14,10 +14,11 @@
 # limitations under the License.
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+export TARGET_NAMESPACE=${1:-"default"}
 export MQCCDTURL="${DIR}/ccdt_generated.json"
 export MQSSLKEYR="${DIR}/../../genericresources/createcerts/application"
 
-export PORT="$(kubectl get services secureapphelm-ibm-mq-qm -n default -o jsonpath='{.spec.ports[].nodePort}')"
+export PORT="$(kubectl get services secureapphelm-ibm-mq-qm -n $TARGET_NAMESPACE -o jsonpath='{.spec.ports[].nodePort}')"
 export IPADDRESS="$(kubectl get nodes -o jsonpath='{..addresses[1].address}' | awk '{print $1}')"
 
 ( echo "cat <<EOF" ; cat ccdt_template.json ; echo EOF ) | sh > ccdt_generated.json

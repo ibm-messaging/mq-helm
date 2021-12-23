@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export TARGET_NAMESPACE=cp4i
+export TARGET_NAMESPACE=${1:-"cp4i"}
+oc project $TARGET_NAMESPACE
 
 helm delete secureapphelm
 oc delete secret helmsecure -n $TARGET_NAMESPACE

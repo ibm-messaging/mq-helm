@@ -8,7 +8,7 @@
                 "connection":
                 [
                     {
-                        "host": "secureapphelm-ibm-mq-qm-cp4i.$ROOTURL",
+                        "host": "secureapphelm-ibm-mq-qm-$TARGET_NAMESPACE.$ROOTURL",
                         "port": 443
                     }
                 ],

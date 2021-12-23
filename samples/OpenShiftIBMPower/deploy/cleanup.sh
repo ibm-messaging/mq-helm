@@ -14,6 +14,7 @@
 # limitations under the License.
 
 export TARGET_NAMESPACE=cp4i
+oc project $TARGET_NAMESPACE
 
 helm delete secureapphelm
 oc delete secret helmsecure -n $TARGET_NAMESPACE
