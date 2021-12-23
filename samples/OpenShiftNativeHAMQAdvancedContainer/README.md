@@ -34,4 +34,4 @@ Navigate to *../test* directory. No modifications should be required, as the end
 
 1. To see how the pods work together in action, run the **oc get pod | grep secureapp** command on another terminal windows to view the current pods, and then delete the running pod (the one with the ready state of `1/1`) by running the command: **oc delete pod secureapphelm-ibm-mq-0** (where the pod name is customized based on which one is active). Once the active pod is deleted, the application connections will then reconnect to the other pod.
 
-1. You can clean up the resources by navigating to the *../deploy* directory and running the command **./cleanup.sh**. This will delete everything. Do not worry if you receive messages about PVCs not being found, this is a generic clean-up script and assumes a worst case scenario.
+1. You can clean up the resources by navigating to the *../deploy* directory and running the command **./cleanup.sh <namespace>**. This will delete everything. Do not worry if you receive messages about PVCs not being found, this is a generic clean-up script and assumes a worst case scenario.
