@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2021
+# © Copyright IBM Corporation 2021, 2022
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ metadata:
   annotations:
     productName: "IBM MQ Advanced for Developers"
     productID: "2f886a3eefbe4ccb89b2adb97c78b9cb"
-    productChargedContainers: "All"
+    productChargedContainers: ""
     productMetric: "FREE"
 route:
   openShiftRoute:
