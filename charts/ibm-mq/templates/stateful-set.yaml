@@ -416,10 +416,20 @@ spec:
             value: {{ .Values.log.format | default "basic" }}
           - name: DEBUG
             value: "{{ .Values.log.debug | default false }}"
-          {{- if .Values.persistence.dataPVC.enable }}
+          {{- if or .Values.persistence.dataPVC.enable .Values.persistence.qmPVC.enable .Values.persistence.logPVC.enable }}
           volumeMounts:
+          {{- end }}
+          {{- if .Values.persistence.qmPVC.enable }}
           - mountPath: "/mnt/mqm"
+            name: {{ $qmVolumeClaimName }}
+          {{- end }}
+          {{- if .Values.persistence.dataPVC.enable }}
+          - mountPath: "/mnt/mqm-data"
             name: {{ $dataVolumeClaimName }}
+          {{- end }}
+          {{- if .Values.persistence.logPVC.enable }}
+          - mountPath: "/mnt/mqm-log"
+            name: {{ $logVolumeClaimName }}
           {{- end }}
           securityContext:
             allowPrivilegeEscalation: false

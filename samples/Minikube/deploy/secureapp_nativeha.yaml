@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2021, 2022
+# © Copyright IBM Corporation 2022
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,32 +16,47 @@ queueManager:
   nativeha:
     enable: true
     tls:
-      secretName: mqperfcert
+      secretName: helmsecure
   mqscConfigMaps:
-    - name: mqperfmqsc
+    - name: helmsecure
       items:
         - mq.mqsc
   qminiConfigMaps:
-    - name: mqperfmqsc
+    - name: helmsecure
       items:
-        - qm.ini
-  envVariables:
-    - name: MQ_APP_PASSWORD
-      value: mqcloudnative
+        - mq.ini
 persistence:
   qmPVC:
     enable: true
+security:
+  # It appears that minikube default storageClass does not support
+  # fsgroup or  supplementaryGroups correctly. Therefore we need
+  # to use an initContainer to reset the ownership of the storage.
+  # https://github.com/kubernetes/minikube/issues/1990
+  initVolumeAsRoot: true
 pki:
   keys:
     - name: default
       secret:
-        secretName: mqperfcert
+        secretName: helmsecure
         items:
           - tls.key
           - tls.crt
+  trust:
+    - name: default
+      secret:
+        secretName: helmsecure
+        items:
+          - app.crt
+livenessProbe:
+  failureThreshold: 3
 metadata:
   annotations:
-    productName: "IBM MQ Advanced for Developers"
+    productName: IBM MQ Advanced for Developers
     productID: "2f886a3eefbe4ccb89b2adb97c78b9cb"
     productChargedContainers: ""
-    productMetric: "FREE"
+    productMetric: FREE
+route:
+  nodePort:
+    webconsole: true
+    mqtraffic: true
