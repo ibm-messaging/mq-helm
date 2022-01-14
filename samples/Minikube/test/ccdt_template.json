@@ -3,10 +3,6 @@
     [
         {
           "name": "MTLSQMCHL",
-            "connectionManagement":
-            {
-              "heartbeatInterval": 30
-            },
             "clientConnection":
             {
                 "connection":

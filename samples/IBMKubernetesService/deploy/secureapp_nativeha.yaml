@@ -50,13 +50,10 @@ livenessProbe:
   failureThreshold: 3
 metadata:
   annotations:
-    productName: "IBM MQ Advanced for Non-Production with CP4I License"
-    productID: "21dfe9a0f00f444f888756d835334909"
-    productChargedContainers: "qmgr"
-    productMetric: "VIRTUAL_PROCESSOR_CORE"
-    productCloudpakRatio: "4:1"
-    cloudpakName: "IBM Cloud Pak for Integration"
-    cloudpakId: "c8b82d189e7545f0892db9ef2731b90d"
+    productName: "IBM MQ Advanced for Developers"
+    productID: "2f886a3eefbe4ccb89b2adb97c78b9cb"
+    productChargedContainers: ""
+    productMetric: "FREE"
 route:
   nodePort:
     webconsole: true
