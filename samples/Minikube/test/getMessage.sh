@@ -19,7 +19,7 @@ export MQCCDTURL="${DIR}/ccdt_generated.json"
 export MQSSLKEYR="${DIR}/../../genericresources/createcerts/application"
 export MQRCVBLKTO=5
 export PORT="$(kubectl get services secureapphelm-ibm-mq-qm -n $TARGET_NAMESPACE -o jsonpath='{.spec.ports[].nodePort}')"
-export IPADDRESS="$(kubectl get nodes -o jsonpath={.items[*].status.addresses[].address} | awk '{print $1;}')"
+export IPADDRESS="$(kubectl get nodes -o jsonpath={..status..address} | awk '{print $1;}')"
 
 ( echo "cat <<EOF" ; cat ccdt_template.json ; echo EOF ) | sh > ccdt_generated.json
 
