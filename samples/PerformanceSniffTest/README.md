@@ -28,7 +28,7 @@ You can run the performance tests against a new or existing queue manager. The i
 1. Log into the Kubernetes cluster from the command line.
 1. Change directories to *deploy*: `cd deploy`      
 1. Run the installation command to deploy an instance of the helm chart: `./install.sh <namespace>`            
-    Where <namespace> is the Kubernetes namespace where the resources should be deployed into. This script will deploy a number of resources:
+    Where \<namespace\> is the Kubernetes namespace where the resources should be deployed into. This script will deploy a number of resources:
     * The IBM MQ Helm Chart using the properties within the [perfhelm_nativeha.yaml](deploy/perfhelm_nativeha.yaml) file.
     * A configMap with MQ configuration to define a default Queue, and the security required.
     * A secret that includes certificates and keys from the `genericresources/createcerts` directory. Assuring the communication in MQ is secure.
