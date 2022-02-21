@@ -2,8 +2,9 @@
 The following includes all the resources to test out the IBM MQ Helm Chart in serveral environments.
 
 * [AWS EKS using IBM MQ Native HA](AWSEKS/README.md)
-* [Azure AKS using IBM MQ Native HA](AzureAKS/README.md)
-* [Azure AKS Free Tier using IBM MQ](AzureAKSFreeTier/README.md)
+* Azure
+   * [Azure AKS using IBM MQ Native HA](AzureAKS/README.md)
+   * [Azure AKS Free Tier using IBM MQ](AzureAKSFreeTier/README.md)
 * [IBM Cloud Kubernetes Service (IKS) using IBM MQ Native HA](IBMKubernetesService/README.md)
 * [minikube on your own laptop](Minikube/README.md)
 * RedHat OpenShift using IBM MQ Native HA

@@ -32,7 +32,7 @@ You can run the performance tests against a new or existing queue manager. The i
     * The IBM MQ Helm Chart using the properties within the [perfhelm_nativeha.yaml](deploy/perfhelm_nativeha.yaml) file.
     * A configMap with MQ configuration to define a default Queue, and the security required.
     * A secret that includes certificates and keys from the `genericresources/createcerts` directory. Assuring the communication in MQ is secure.
-1. This will take a minute or so to deploy, and the status can be checked with the following command: `kubectl get pods | grep perfhelm`. Wait until one of the three Pods is showing `1/1` under the read status (only one will ever show this, the remainding two will be `0/1` showing they are replicas).
+1. This will take a minute or so to deploy, and the status can be checked with the following command: `kubectl get pods | grep perfhelm`. Wait until one of the three Pods is showing `1/1` under the ready status (only one will ever show this, the remainding two will be `0/1` showing they are replicas).
 
 ## Building the "Test application"
 This section will build the "Test application" that will drive workload into the Queue Manager.

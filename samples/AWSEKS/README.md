@@ -16,7 +16,7 @@ Prior to using the Helm chart you will need to install four dependencies:
     * The IBM MQ Helm Chart using the properties within the [secureapp_nativeha.yaml](deploy/secureapp_nativeha.yaml) file.
     * A configMap with MQ configuration to define a default Queue, and the security required.
     * A secret that includes certificates and keys from the `genericresources/createcerts` directory. Assuring the communication in MQ is secure.
-1. This will take a minute or so to deploy, and the status can be checked with the following command: `kubectl get pods | grep secureapp`. Wait until one of the three Pods is showing `1/1` under the read status (only one will ever show this, the remainding two will be `0/1` showing they are replicas).
+1. This will take a minute or so to deploy, and the status can be checked with the following command: `kubectl get pods | grep secureapp`. Wait until one of the three Pods is showing `1/1` under the ready status (only one will ever show this, the remainding two will be `0/1` showing they are replicas).
 
 ## Testing
 Navigate to *../test* directory. No modifications should be required, as the endpoint configuration for your environment will be discovered automatically.
