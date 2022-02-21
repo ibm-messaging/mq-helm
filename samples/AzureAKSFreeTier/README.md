@@ -12,7 +12,7 @@ Prior to using the Helm chart you will need to install four dependencies:
 ## Installation
 1. Log into the Azure command line using `az login`. If you require additional details please consult [here](https://docs.microsoft.com/en-gb/cli/azure/get-started-with-azure-cli).
 1. Change directories to *deploy*: `cd deploy`
-1. An optional script to create and connect to a new AKS cluster is included called [*createAKSCluster.sh \<ResourceGroup\> \<ClusterName\> \<AKS Region\>*](deploy/createAKSCluster.sh) which takes three optional parameters:
+1. An optional script to create and connect to a new AKS cluster is included called [*./createAKSCluster.sh \<ResourceGroup\> \<ClusterName\> \<AKS Region\>*](deploy/createAKSCluster.sh) which takes three optional parameters:
       * Parameter 1: Azure Resource Group name to be created for the deployment - this will default to *myMQResourceGroup*
       * Parameter 2: AKS Cluster name - this will default to *myMQCluster*
       * Parameter 3: The Azure region for the deployment - this will default to *eastus*.
@@ -25,8 +25,8 @@ Prior to using the Helm chart you will need to install four dependencies:
     * The IBM MQ Helm Chart using the properties within the [secureapp.yaml](deploy/secureapp.yaml) file.
     * A configMap with MQ configuration to define a default Queue, and the security required.
     * A secret that includes certificates and keys from the `genericresources/createcerts` directory. Assuring the communication in MQ is secure.
-    * A Kubernete load balancer service to expose the Native HA Queue Manager to the internet.
-1. This will take a minute or so to deploy, and the status can be checked with the following command: `kubectl get pods | grep secureapp`. Wait until one of the three Pods is showing `1/1` under the read status (only one will ever show this, the remainding two will be `0/1` showing they are replicas).
+    * A Kubernete load balancer service to expose the Queue Manager to the internet.
+1. This will take a minute or so to deploy, and the status can be checked with the following command: `kubectl get pods | grep secureapp`. Wait until the Pod is showing `1/1` under the ready status.
 
 ## Testing
 Navigate to the *../test* directory. No modifications should be required, as the endpoint configuration for your environment will be discovered automatically.
