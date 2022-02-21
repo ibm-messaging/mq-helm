@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2022
+# © Copyright IBM Corporation 2021
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,13 +18,15 @@ metadata:
   namespace: $TARGET_NAMESPACE
 data:
   mq.mqsc: |-
-    DEFINE QLOCAL('APPQ') DEFPSIST(YES)
+    DEFINE QLOCAL('APPQ') DEFPRESP(SYNC) DEFPSIST(YES)
     DEFINE CHANNEL(MTLSQMCHL) CHLTYPE(SVRCONN) TRPTYPE(TCP) SSLCAUTH(REQUIRED) SSLCIPH('ANY_TLS12_OR_HIGHER')
     ALTER AUTHINFO(SYSTEM.DEFAULT.AUTHINFO.IDPWOS) AUTHTYPE(IDPWOS) ADOPTCTX(YES) CHCKCLNT(OPTIONAL) CHCKLOCL(OPTIONAL) AUTHENMD(OS)
     SET CHLAUTH('MTLSQMCHL') TYPE(SSLPEERMAP) SSLPEER('CN=application1,OU=app team1') USERSRC(MAP) MCAUSER('app1') ACTION(ADD)
     REFRESH SECURITY TYPE(CONNAUTH)
     SET AUTHREC PRINCIPAL('app1') OBJTYPE(QMGR) AUTHADD(CONNECT,INQ)
     SET AUTHREC PROFILE('APPQ') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+    SET AUTHREC PRINCIPAL('app') OBJTYPE(QMGR) AUTHADD(CONNECT,INQ)
+    SET AUTHREC PROFILE('APPQ') PRINCIPAL('app') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
   mq.ini: |-
     Service:
       Name=AuthorizationService
@@ -41,3 +43,16 @@ data:
   tls.crt: $QM_CERT
   app.crt: $APP_CERT
 type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: secureapphelm-ibm-mq-qm-loadbalancer
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 1414
+    name: qmgr
+  selector:
+    app.kubernetes.io/instance: secureapphelm
+    app.kubernetes.io/name: ibm-mq
