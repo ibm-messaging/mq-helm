@@ -11,3 +11,4 @@ The following includes all the resources to test out the IBM MQ Helm Chart in se
    * Configured for the [IBM MQ Advanced for Developer container](OpenShiftNativeHA/README.md)
    * Configured for a licensed [IBM MQ Advanced container](OpenShiftNativeHAMQAdvancedContainer/README.md)
 * [RedHat OpenShift on IBM Power using a single instance Queue Manager](OpenShiftIBMPower/README.md)
+* [VMware tanzu using IBM MQ Native HA](VMwareTanzu/README.md)

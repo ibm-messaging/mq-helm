@@ -18,7 +18,7 @@ Prior to using the Helm chart you will need to install four dependencies:
       * Parameter 3: The Azure region for the deployment - this will default to *eastus*.
       For instance if you wanted the Resource group *MQTest*, in a cluster names *MQCluster*, in *westus* region, the command would be:
       ```
-      createAKSCluster.sh MQTest MQCluster westus
+      ./createAKSCluster.sh MQTest MQCluster westus
       ```
 1. Run the installation command to deploy an instance of the helm chart: `./install.sh <namespace>`
     Where \<namespace\> is the Kubernetes namespace where the resources should be deployed into. If you are unsure this can be omitted and it will be installed into the default namespace. This will deploy a number of resources:
