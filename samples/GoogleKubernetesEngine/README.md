@@ -1,7 +1,7 @@
 # Deploying the IBM MQ Helm Chart on Google Kubernetes Engine
 
 ## Pre-reqs
-Prior to using the Helm chart you will need to install four dependencies:
+Prior to using the Helm chart you will need to install three dependencies:
 1. [Helm version 3](https://helm.sh/docs/intro/install/)
 2. [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 3. [Google Cloud Command Line](https://cloud.google.com/sdk/docs/install)
@@ -9,7 +9,7 @@ Prior to using the Helm chart you will need to install four dependencies:
 
 ## Installation
 
-1. Log and create a new project on Google Cloud using the command line: `gcloud init`. You will be redirected to a browser to complete authentication. Once complete, the command line will ask if to use and existing or new project. It is recommended that a new project is selected to assure the resource created are easy to remove. The name can be any valid value but we used mq-gke in the example output below:
+1. Log and create a new project on Google Cloud using the command line: `gcloud init`. You will be redirected to a browser to complete authentication. Once complete, the command line will ask if to use an existing or new project. It is recommended that a new project is selected to ensure the resources created are easy to remove. The name can be any valid value, but we used mq-gke in the example output below:
    ```
    laptop$ gcloud init
    Welcome! This command will take you through the configuration of gcloud.
@@ -71,7 +71,7 @@ Prior to using the Helm chart you will need to install four dependencies:
    * Run `gcloud topic --help` to learn about advanced features of the SDK like arg files and output formatting   
    * Run `gcloud cheat-sheet` to see a roster of go-to `gcloud` commands.
    ```
-   Depending on your setup, the creation of a new project may require a billing account to be associated. Complete the process documented (https://cloud.google.com/billing/docs/how-to/modify-project)[here].
+   Depending on your setup, the creation of a new project may require a billing account to be associated. Complete the process documented [here](https://cloud.google.com/billing/docs/how-to/modify-project).
 1. If this is the first time you have used GKE within your account the service needs to be enabled by running:
    ```
    gcloud services enable container.googleapis.com
