@@ -71,7 +71,7 @@ Prior to using the Helm chart you will need to install three dependencies:
    * Run `gcloud topic --help` to learn about advanced features of the SDK like arg files and output formatting   
    * Run `gcloud cheat-sheet` to see a roster of go-to `gcloud` commands.
    ```
-   Depending on your setup, the creation of a new project may require a billing account to be associated. Complete the process documented [https://cloud.google.com/billing/docs/how-to/modify-project](here).
+   Depending on your setup, the creation of a new project may require a billing account to be associated. Complete the process documented [here](https://cloud.google.com/billing/docs/how-to/modify-project).
 1. If this is the first time you have used GKE within your account the service needs to be enabled by running:
    ```
    gcloud services enable container.googleapis.com
