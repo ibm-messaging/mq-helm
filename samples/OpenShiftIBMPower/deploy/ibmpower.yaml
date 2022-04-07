@@ -14,7 +14,7 @@
 license: accept
 image:
   repository: image-registry.openshift-image-registry.svc:5000/mq/ibm-mqadvanced-server-dev
-  tag: 9.2.4.0-ppc64le
+  tag: 9.2.5.0-ppc64le
 queueManager:
   mqscConfigMaps:
     - name: helmsecure
