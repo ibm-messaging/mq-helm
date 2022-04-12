@@ -53,6 +53,8 @@ spec:
   ports:
   - port: 1414
     name: qmgr
+  - port: 9443
+    name: console-https
   selector:
     app.kubernetes.io/instance: secureapphelm
     app.kubernetes.io/name: ibm-mq
