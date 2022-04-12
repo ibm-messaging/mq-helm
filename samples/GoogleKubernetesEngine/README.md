@@ -82,9 +82,9 @@ Prior to using the Helm chart you will need to install three dependencies:
       * Parameter 1: GKE Cluster name - this will default to *mq-cluster*
       * Parameter 2: The Google Cloud region for the deployment - this will default to *europe-west2*. Available values can be found [here](https://cloud.google.com/compute/docs/regions-zones).
       * Parameter 3: The Google Cloud zones for the deployment - this will default to *europe-west2-a,europe-west2-b,europe-west2-c*. Available values can be found [here](https://cloud.google.com/compute/docs/regions-zones).
-      For instance if you wanted the a cluster names *MQCluster*, in *europe-west1* region, in zones *europe-west1-a,europe-west1-b,europe-west1-c* the command would be:
+      For instance if you wanted the a cluster names *my-mq-cluster*, in *us-west1* region, in zones *us-west1-a,us-west1-b,us-west1-c* the command would be:
       ```
-      ./createGKECluster.sh MQCluster europe-west1 europe-west1-a,europe-west1-b,europe-west1-c
+      ./createGKECluster.sh my-mq-cluster us-west1 us-west1-a,us-west1-b,us-west1-c
       ```
 1. Run the installation command to deploy an instance of the helm chart: `./install.sh <namespace>`
     Where \<namespace\> is the Kubernetes namespace where the resources should be deployed into. If you are unsure this can be omitted and it will be installed into the default namespace. This will deploy a number of resources:
