@@ -147,6 +147,8 @@ Alternatively, each paremeter can be specified by using the `--set key=value[,ke
 | `startupProbe.periodSeconds`  | How often (in seconds) to perform the probe.              | 5                                          |
 | `startupProbe.successThreshold` | Minimum consecutive successes for the probe to be considered successful.               | 1                                          |
 | `startupProbe.failureThreshold` | Minimum consecutive failures for the probe to be considered failed after having succeeded | 24              |
+| `route.loadBalancer.webconsole`     | Controls if a load balancer service is created for the MQ web console.       | `false`                                    |
+| `route.loadBalancer.mqtraffic `     | Controls if a load balancer service is created for the MQ data traffic.      | `false`                                    |
 | `route.nodePort.webconsole`     | Controls if a node port is created for the MQ web console.       | `false`                                    |
 | `route.nodePort.mqtraffic `     | Controls if a node port is created for the MQ data traffic.      | `false`                                    |
 | `route.openShiftRoute.webconsole`     | Controls if an OpenShift Route is created for the MQ web console.       | `false`                                    |
