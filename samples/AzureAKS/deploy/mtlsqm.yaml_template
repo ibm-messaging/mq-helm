@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2021
+# © Copyright IBM Corporation 2021, 2022
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -43,16 +43,3 @@ data:
   tls.crt: $QM_CERT
   app.crt: $APP_CERT
 type: Opaque
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: secureapphelm-ibm-mq-qm-loadbalancer
-spec:
-  type: LoadBalancer
-  ports:
-  - port: 1414
-    name: qmgr
-  selector:
-    app.kubernetes.io/instance: secureapphelm
-    app.kubernetes.io/name: ibm-mq
