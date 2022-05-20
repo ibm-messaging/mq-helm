@@ -3,6 +3,24 @@ entries:
   ibm-mq:
   - apiVersion: v2
     appVersion: 9.2.5.0
+    created: "2022-05-20T15:12:57.161482128Z"
+    description: IBM MQ queue manager
+    digest: ec18a860b5d036faace7cd1e51a8556c73439338f2c469570167959e08952f99
+    icon: https://raw.githubusercontent.com/IBM/charts/master/logo/ibm-mq-blue-icon.png
+    keywords:
+    - IBM MQ
+    - MQ
+    - amd64
+    - message queue
+    - Integration
+    kubeVersion: '>=1.18.0-0'
+    name: ibm-mq
+    type: application
+    urls:
+    - https://github.com/ibm-messaging/mq-helm/releases/download/ibm-mq-2.0.1/ibm-mq-2.0.1.tgz
+    version: 2.0.1
+  - apiVersion: v2
+    appVersion: 9.2.5.0
     created: "2022-04-07T16:28:13.373221114Z"
     description: IBM MQ queue manager
     digest: 9b17aed6a75a1492c8cb58f485c70cc07d43820fc285a36d419b2057344f718e
@@ -55,4 +73,4 @@ entries:
     urls:
     - https://github.com/ibm-messaging/mq-helm/releases/download/ibm-mq-1.0.0/ibm-mq-1.0.0.tgz
     version: 1.0.0
-generated: "2022-04-07T16:28:13.373244708Z"
+generated: "2022-05-20T15:12:57.161500029Z"
