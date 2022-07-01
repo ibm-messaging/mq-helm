@@ -13,8 +13,9 @@
 # limitations under the License.
 license: accept
 image:
-  repository: image-registry.openshift-image-registry.svc:5000/mq/ibm-mqadvanced-server-dev
-  tag: 9.2.5.0-ppc64le
+  repository: cp.icr.io/cp/ibm-mqadvanced-server
+  tag: 9.3.0.0-r1-ppc64le
+  pullSecret: ibm-entitlement-key
 queueManager:
   mqscConfigMaps:
     - name: helmsecure
