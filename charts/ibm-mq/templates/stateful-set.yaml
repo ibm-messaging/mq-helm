@@ -31,6 +31,10 @@ spec:
   updateStrategy:
     type: OnDelete
   replicas: 3
+  {{- else if .Values.queueManager.multiinstance.enable }}
+  updateStrategy:
+    type: OnDelete
+  replicas: 2
   {{- else }}
   replicas: 1
   updateStrategy:
@@ -50,7 +54,7 @@ spec:
         statefulSetName: {{ $statefulSetName }}
     spec:
       affinity:
-      {{- if .Values.queueManager.nativeha.enable }}
+      {{- if or .Values.queueManager.nativeha.enable .Values.queueManager.multiinstance.enable }}
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
@@ -111,9 +115,21 @@ spec:
       volumes:
       {{- else if or (or (or (or (or (.Values.pki.trust) (.Values.pki.keys)) (.Values.queueManager.mqscConfigMaps)) (.Values.queueManager.qminiConfigMaps)) (.Values.queueManager.mqscSecrets)) (.Values.queueManager.qminiSecrets) }}
       volumes:
+      {{- else if .Values.queueManager.multiinstance.enable }}
+      volumes:
       {{- end }}
       {{- else if or (or (or (or (or (.Values.pki.trust) (.Values.pki.keys)) (.Values.queueManager.mqscConfigMaps)) (.Values.queueManager.qminiConfigMaps)) (.Values.queueManager.mqscSecrets)) (.Values.queueManager.qminiSecrets) }}
       volumes:
+      {{- else if .Values.queueManager.multiinstance.enable }}
+      volumes:
+      {{- end}}
+      {{- if .Values.queueManager.multiinstance.enable }}
+      - name: {{ $dataVolumeClaimName }}
+        persistentVolumeClaim:
+          claimName: {{ $dataVolumeClaimName }}-{{ $statefulSetName }}
+      - name: {{ $logVolumeClaimName }}
+        persistentVolumeClaim:
+          claimName: {{ $logVolumeClaimName }}-{{ $statefulSetName }}
       {{- end}}
       {{- if .Values.queueManager.nativeha.tls }}
       {{- if .Values.queueManager.nativeha.tls.secretName }}
@@ -221,6 +237,10 @@ spec:
             value: "{{ .Values.queueManager.name | default .Release.Name | replace "-" "" }}"
           - name: MQ_NATIVE_HA
             value: "{{ .Values.queueManager.nativeha.enable | default false }}"
+          {{- if .Values.queueManager.multiinstance.enable }}
+          - name: MQ_MULTI_INSTANCE
+            value: "{{ .Values.queueManager.multiinstance.enable | default false }}"
+          {{- end }}
           - name: AMQ_CLOUD_PAK
             value: "true"
           - name: MQ_NATIVE_HA_INSTANCE_0_NAME
@@ -268,8 +288,12 @@ spec:
           volumeMounts:
           {{- else if or (or (or (or (or (or (.Values.pki.trust) (.Values.pki.keys)) (.Values.queueManager.mqscConfigMaps)) (.Values.queueManager.qminiConfigMaps)) (.Values.queueManager.mqscSecrets)) (.Values.queueManager.qminiSecrets)) ((.Values.persistence.qmPVC.enable))}}
           volumeMounts:
+          {{- else if .Values.queueManager.multiinstance.enable }}
+          volumeMounts:
           {{- end }}
           {{- else if or (or (or (or (or (or (.Values.pki.trust) (.Values.pki.keys)) (.Values.queueManager.mqscConfigMaps)) (.Values.queueManager.qminiConfigMaps)) (.Values.queueManager.mqscSecrets)) (.Values.queueManager.qminiSecrets)) ((.Values.persistence.qmPVC.enable))}}
+          volumeMounts:
+          {{- else if .Values.queueManager.multiinstance.enable }}
           volumeMounts:
           {{- end}}
           {{- if .Values.queueManager.nativeha.tls }}
@@ -333,15 +357,15 @@ spec:
           {{- end }}
           {{- end }}
           {{- end }}
-          {{- if .Values.persistence.qmPVC.enable }}
+          {{- if or .Values.persistence.qmPVC.enable .Values.queueManager.multiinstance.enable }}
           - mountPath: "/mnt/mqm"
             name: {{ $qmVolumeClaimName }}
           {{- end }}
-          {{- if .Values.persistence.dataPVC.enable }}
+          {{- if or .Values.persistence.dataPVC.enable .Values.queueManager.multiinstance.enable }}
           - mountPath: "/mnt/mqm-data"
             name: {{ $dataVolumeClaimName }}
           {{- end }}
-          {{- if .Values.persistence.logPVC.enable }}
+          {{- if or .Values.persistence.logPVC.enable .Values.queueManager.multiinstance.enable }}
           - mountPath: "/mnt/mqm-log"
             name: {{ $logVolumeClaimName }}
           {{- end }}
@@ -361,7 +385,7 @@ spec:
             exec:
               command:
               - chkmqhealthy
-            {{- if .Values.queueManager.nativeha.enable }}
+            {{- if or .Values.queueManager.nativeha.enable .Values.queueManager.multiinstance.enable }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds | default 0 }}
             {{- else }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds | default 90 }}
@@ -374,7 +398,7 @@ spec:
             exec:
               command:
               - chkmqready
-            {{- if .Values.queueManager.nativeha.enable }}
+            {{- if or .Values.queueManager.nativeha.enable .Values.queueManager.multiinstance.enable }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds | default 0 }}
             {{- else }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds | default 10 }}
@@ -382,7 +406,7 @@ spec:
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
-          {{- if .Values.queueManager.nativeha.enable }}
+          {{- if or .Values.queueManager.multiinstance.enable .Values.queueManager.nativeha.enable }}
           startupProbe:
             exec:
               command:
@@ -416,18 +440,18 @@ spec:
             value: {{ .Values.log.format | default "basic" }}
           - name: DEBUG
             value: "{{ .Values.log.debug | default false }}"
-          {{- if or .Values.persistence.dataPVC.enable .Values.persistence.qmPVC.enable .Values.persistence.logPVC.enable }}
+          {{- if or .Values.persistence.dataPVC.enable .Values.persistence.qmPVC.enable .Values.persistence.logPVC.enable .Values.queueManager.multiinstance.enable }}
           volumeMounts:
           {{- end }}
-          {{- if .Values.persistence.qmPVC.enable }}
+          {{- if or .Values.persistence.qmPVC.enable .Values.queueManager.multiinstance.enable }}
           - mountPath: "/mnt/mqm"
             name: {{ $qmVolumeClaimName }}
           {{- end }}
-          {{- if .Values.persistence.dataPVC.enable }}
+          {{- if or .Values.persistence.dataPVC.enable .Values.queueManager.multiinstance.enable }}
           - mountPath: "/mnt/mqm-data"
             name: {{ $dataVolumeClaimName }}
           {{- end }}
-          {{- if .Values.persistence.logPVC.enable }}
+          {{- if or .Values.persistence.logPVC.enable .Values.queueManager.multiinstance.enable }}
           - mountPath: "/mnt/mqm-log"
             name: {{ $logVolumeClaimName }}
           {{- end }}
@@ -446,7 +470,7 @@ spec:
                 - ALL
       {{- end }}
   volumeClaimTemplates:
-  {{- if .Values.persistence.dataPVC.enable }}
+  {{- if and (.Values.persistence.dataPVC.enable) (eq .Values.queueManager.multiinstance.enable false) }}
   - metadata:
       name: {{ $dataVolumeClaimName }}
       labels:
@@ -462,7 +486,7 @@ spec:
         requests:
           storage: {{ .Values.persistence.dataPVC.size | quote }}
   {{- end }}
-  {{- if .Values.persistence.logPVC.enable }}
+  {{- if and (.Values.persistence.logPVC.enable) (eq .Values.queueManager.multiinstance.enable false) }}
   - metadata:
       name: {{ $logVolumeClaimName }}
       labels:
@@ -478,7 +502,7 @@ spec:
         requests:
           storage: {{ .Values.persistence.logPVC.size | quote }}
   {{- end }}
-  {{- if .Values.persistence.qmPVC.enable }}
+  {{- if or .Values.persistence.qmPVC.enable .Values.queueManager.multiinstance.enable }}
   - metadata:
       name: {{ $qmVolumeClaimName }}
       labels:
