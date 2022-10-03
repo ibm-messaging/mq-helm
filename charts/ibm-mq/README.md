@@ -43,6 +43,12 @@ See the **configuration** section for how to configure these values.
 
 > **Tip**: A [samples directory](../../samples/README.md) is available that demonstrates how to install the chart in a number of common environments. For first time users it is suggested that this is used.
 
+Add reposity to helm with the command:
+
+```sh
+helm repo add ibm-messaging-mq https://ibm-messaging.github.io/mq-helm
+```
+
 Install the chart, specifying the release name (for example `nativeha`) and Helm chart name `ibm-mq` with the following command:
 
 ```sh
