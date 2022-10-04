@@ -43,7 +43,7 @@ See the **configuration** section for how to configure these values.
 
 > **Tip**: A [samples directory](../../samples/README.md) is available that demonstrates how to install the chart in a number of common environments. For first time users it is suggested that this is used.
 
-Add reposity to helm with the command:
+To add the helm chart to your helm repository, run the command:
 
 ```sh
 helm repo add ibm-messaging-mq https://ibm-messaging.github.io/mq-helm
