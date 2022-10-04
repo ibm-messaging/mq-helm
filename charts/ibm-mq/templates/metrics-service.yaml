@@ -22,6 +22,7 @@ metadata:
     prometheus.io/scrape: 'true'
     prometheus.io/port: '9157'
   name: '{{ include "ibm-mq.fullname" . }}-metrics'
+  namespace: {{ .Release.Namespace }}
   labels:
 {{- include "ibm-mq.labels" . | nindent 4 }}
 spec:

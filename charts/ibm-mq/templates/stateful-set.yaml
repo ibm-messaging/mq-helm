@@ -19,6 +19,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ $statefulSetName }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "ibm-mq.labels" . | nindent 4 }}
 spec:
@@ -38,6 +39,7 @@ spec:
   {{- end }}
   template:
     metadata:
+      namespace: {{ .Release.Namespace }}
       annotations:
       {{- with .Values.metadata.annotations }}
         {{- toYaml . | nindent 8 }}
@@ -449,6 +451,7 @@ spec:
   {{- if .Values.persistence.dataPVC.enable }}
   - metadata:
       name: {{ $dataVolumeClaimName }}
+      namespace: {{ .Release.Namespace }}
       labels:
 {{- include "ibm-mq.labels" . | nindent 8 }}
     spec:
@@ -465,6 +468,7 @@ spec:
   {{- if .Values.persistence.logPVC.enable }}
   - metadata:
       name: {{ $logVolumeClaimName }}
+      namespace: {{ .Release.Namespace }}
       labels:
 {{- include "ibm-mq.labels" . | nindent 8 }}
     spec:
@@ -481,6 +485,7 @@ spec:
   {{- if .Values.persistence.qmPVC.enable }}
   - metadata:
       name: {{ $qmVolumeClaimName }}
+      namespace: {{ .Release.Namespace }}
       labels:
 {{- include "ibm-mq.labels" . | nindent 8 }}
     spec:

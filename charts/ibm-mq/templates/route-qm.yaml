@@ -17,6 +17,7 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: "{{ include "ibm-mq.fullname" . }}-qm"
+  namespace: {{ .Release.Namespace }}
   labels:
 {{- include "ibm-mq.labels" . | nindent 4 }}
 spec:

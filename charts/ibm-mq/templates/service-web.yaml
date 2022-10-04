@@ -16,6 +16,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "ibm-mq.fullname" . }}-web
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "ibm-mq.labels" . | nindent 4 }}
 spec:
