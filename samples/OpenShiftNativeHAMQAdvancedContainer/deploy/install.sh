@@ -23,4 +23,4 @@ export APP_CERT=$(cat ../../genericresources/createcerts/application.crt | base6
 oc project $TARGET_NAMESPACE
 oc apply -f mtlsqm.yaml
 
-helm install secureapphelm ../../../charts/ibm-mq -f secureapp_nativeha.yaml
+helm install -n $TARGET_NAMESPACE secureapphelm ../../../charts/ibm-mq -f secureapp_nativeha.yaml

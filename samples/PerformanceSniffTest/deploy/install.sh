@@ -22,4 +22,4 @@ export QM_CERT=$(cat ../../genericresources/createcerts/server.crt | base64 | tr
 
 oc apply -f resource.yaml
 
-helm install perfhelm ../../../charts/ibm-mq -f perfhelm_nativeha.yaml
+helm install -n $TARGET_NAMESPACE perfhelm ../../../charts/ibm-mq -f perfhelm_nativeha.yaml
