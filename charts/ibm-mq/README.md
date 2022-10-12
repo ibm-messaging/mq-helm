@@ -77,7 +77,7 @@ where:
 * *namespace*: the Kubernetes namespace of the statefulSet     
 
 The following shows how to invoke in the two scenarios, where the helm chart deployment name is `myhelmdeployment` and the namespace is `mq`.
-* Interactive: ```manualAcceptance=false ../../samples/genericresources/rollingupdate/demoRollingUpdate.sh myhelmdeployment-ibm-mq mq```
+* Interactive: ```manualAcceptance=true ../../samples/genericresources/rollingupdate/demoRollingUpdate.sh myhelmdeployment-ibm-mq mq```
 * Automated: ```manualAcceptance=false ../../samples/genericresources/rollingupdate/demoRollingUpdate.sh myhelmdeployment-ibm-mq mq```
 
 > **Warning**: The `sample script` deletes Pods and there are many situtations where this can cause an extended downtime or the queue manager becomes unavailable. The rolling update `sample script` may need extensive changes to meet your production cloud requirements.  
