@@ -91,6 +91,9 @@ queueManager:
   # nativeha specifies whether to run in nativeha mode with an active and two following container instances
   nativeha:
     enable: false
+  # multiinstance specifies whether to run in multiinstance mode with an active and one standby container instances
+  multiinstance:
+    enable: false
   # Allows MQSC snippets to be loaded from configMaps. These will be loaded into the running instance
   mqscConfigMaps: []
   # Allows MQSC snippets to be loaded from secrets. These will be loaded into the running instance
