@@ -15,7 +15,7 @@ The repoistory includes two directories:
 
 ## Issues and contributions
 
-For issues relating specifically to the Helm chart, please use the [GitHub issue tracker](https://github.com/ibm-messaging/mq-helm/issues). If you do submit a Pull Request related to this Helm chart, please indicate in the Pull Request that you accept and agree to be bound by the terms of the [IBM Contributor License Agreement](CLA.md).
+For issues relating specifically to the Helm chart, please use the [GitHub issue tracker](https://github.com/ibm-messaging/mq-helm/issues). If you do submit a Pull Request related to this Helm chart, please indicate in the Pull Request that you accept and agree to be bound by the terms of the [Developer's Certificate of Origin](DCO1.1.txt).
 
 ## License
 
