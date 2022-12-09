@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This chart deploys a single IBM® MQ server (Queue Manager) built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified using the [9.3.0 branch](https://github.com/ibm-messaging/mq-container/tree/9.3.0). IBM MQ is messaging middleware that simplifies and accelerates the integration of diverse applications and business data across multiple platforms.  It uses message queues, topics and subscriptions to facilitate the exchanges of information and offers a single messaging solution for cloud and on-premises environments.
+This chart deploys a single IBM® MQ server (Queue Manager) built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified using the [9.3.1 branch](https://github.com/ibm-messaging/mq-container/tree/9.3.1). IBM MQ is messaging middleware that simplifies and accelerates the integration of diverse applications and business data across multiple platforms.  It uses message queues, topics and subscriptions to facilitate the exchanges of information and offers a single messaging solution for cloud and on-premises environments.
 
 ## Chart Details
 
@@ -106,7 +106,7 @@ Alternatively, each paremeter can be specified by using the `--set key=value[,ke
 | ------------------------------- | --------------------------------------------------------------- | ------------------------------------------ |
 | `license`                       | Set to `accept` to accept the terms of the IBM license          | `"not accepted"`                           |
 | `image.repository`              | Image full name including repository                            | `ibmcom/mq`                                |
-| `image.tag`                     | Image tag                                                       | `9.3.0.0-r1`                               |
+| `image.tag`                     | Image tag                                                       | `9.3.1.0-r1`                               |
 | `image.pullPolicy`              | Setting that controls when the kubelet attempts to pull the specified image.                                               | `IfNotPresent`                             |
 | `image.pullSecret`              | An optional list of references to secrets in the same namespace to use for pulling any of the images used by this QueueManager. If specified, these secrets will be passed to individual puller implementations for them to use. For example, in the case of docker, only DockerConfig type secrets are honored. For more information, see [here](https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod)   | `nil`                                      |
 | `metadata.labels`               | The labels field serves as a pass-through for Pod labels. Users can add any label to this field and have it apply to the Pod.                      | `{}`                                       |
@@ -133,7 +133,7 @@ Alternatively, each paremeter can be specified by using the `--set key=value[,ke
 | `security.runAsUser` | Controls which user ID the containers are run with.  | `nil`                               |
 | `queueManager.multiinstance.enable`    | Whether to run in Multi-instance mode, with two Pods (one active and one passive Pods). | `false`                     |
 | `queueManager.name`             | By default the Queue Manager will match the Helm release name. Use this field to change the Queue Manager name, for example if the Helm release name does not conform to the rules for naming a Queue Manager name (for example, a name longer than 48 characters).                                           | Helm release name                          |
-| `queueManager.nativeha.enable`    | Whether to run in Native HA mode, with three Pods (one active and two replica Pods). Native HA is only available on x86 and Linux on IBM Z. | `false`                     |
+| `queueManager.nativeha.enable`    | Whether to run in Native HA mode, with three Pods (one active and two replica Pods). Native HA is available on x86, Linux on IBM Power and Linux on IBM Z. | `false`                     |
 | `queueManager.nativeha.tls.cipherSpec`    | Optional TLS settings for configuring secure communication between Native HA replicas. The name of the CipherSpec for Native HA TLS | `"ANY_TLS12_OR_HIGHER"`                     |
 | `queueManager.nativeha.tls.secretName`    | Optional TLS settings for configuring secure communication between Native HA replicas. The name of the Kubernetes secret. | `""`                     |
 | `queueManager.mqscConfigMaps` | An array of YAML objects that detail the Kubernetes configMap items that should be added.  For further details regarding how this is specified consult [Supplying custom mqsc using a configMap](#Supplying-custom-mqsc-using-a-configMap)  | `[]` |
