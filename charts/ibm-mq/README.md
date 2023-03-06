@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This chart deploys a single IBM® MQ server (Queue Manager) built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified using the [9.3.1 branch](https://github.com/ibm-messaging/mq-container/tree/9.3.1). IBM MQ is messaging middleware that simplifies and accelerates the integration of diverse applications and business data across multiple platforms.  It uses message queues, topics and subscriptions to facilitate the exchanges of information and offers a single messaging solution for cloud and on-premises environments.
+This chart deploys a single IBM® MQ server (Queue Manager) built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified using the [9.3.2 branch](https://github.com/ibm-messaging/mq-container/tree/9.3.2). IBM MQ is messaging middleware that simplifies and accelerates the integration of diverse applications and business data across multiple platforms.  It uses message queues, topics and subscriptions to facilitate the exchanges of information and offers a single messaging solution for cloud and on-premises environments.
 
 ## Chart Details
 
@@ -106,7 +106,7 @@ Alternatively, each paremeter can be specified by using the `--set key=value[,ke
 | ------------------------------- | --------------------------------------------------------------- | ------------------------------------------ |
 | `license`                       | Set to `accept` to accept the terms of the IBM license          | `"not accepted"`                           |
 | `image.repository`              | Image full name including repository                            | `ibmcom/mq`                                |
-| `image.tag`                     | Image tag                                                       | `9.3.1.0-r1`                               |
+| `image.tag`                     | Image tag                                                       | `9.3.2.0-r1`                               |
 | `image.pullPolicy`              | Setting that controls when the kubelet attempts to pull the specified image.                                               | `IfNotPresent`                             |
 | `image.pullSecret`              | An optional list of references to secrets in the same namespace to use for pulling any of the images used by this QueueManager. If specified, these secrets will be passed to individual puller implementations for them to use. For example, in the case of docker, only DockerConfig type secrets are honored. For more information, see [here](https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod)   | `nil`                                      |
 | `metadata.labels`               | The labels field serves as a pass-through for Pod labels. Users can add any label to this field and have it apply to the Pod.                      | `{}`                                       |
@@ -128,6 +128,7 @@ Alternatively, each paremeter can be specified by using the `--set key=value[,ke
 | `resources.requests.cpu`        | Kubernetes CPU request for each Pod of the Queue Manager container          | `100m`                                     |
 | `resources.requests.memory`     | Kubernetes memory request for each Pod of the Queue Manager container       | `512Mi`                                    |
 | `security.context.fsGroup`      | A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to change the ownership of that volume to be owned by the pod: 1. The owning GID will be the FSGroup 2. The setgid bit is set (new files created in the volume will be owned by FSGroup) 3. The permission bits are OR'd with rw-rw---- If unset, the Kubelet will not modify the ownership and permissions of any volume.          | `nil`                                      |
+| `security.context.seccompProfile.type` | Seccomp stands for secure computing mode and when enabled restricts the calls that can be made to the kernel. For more information, see https://kubernetes.io/docs/tutorials/security/seccomp/ | `nil`                                  |
 | `security.context.supplementalGroups` | A list of groups applied to the first process run in each container, in addition to the container's primary GID. If unspecified, no groups will be added to any container. | `nil`                                  |
 | `security.initVolumeAsRoot`     | This affects the securityContext used by the container which initializes the PersistentVolume. Set this to true if you are using a storage provider which requires you to be the root user to access newly provisioned volumes. Setting this to true affects which Security Context Constraints (SCC) object you can use, and the Queue Manager may fail to start if you are not authorized to use an SCC which allows the root user. Defaults to false. For more information, see https://docs.openshift.com/container-platform/latest/authentication/managing-security-context-constraints.html. | `false`                  |
 | `security.runAsUser` | Controls which user ID the containers are run with.  | `nil`                               |
@@ -157,8 +158,9 @@ Alternatively, each paremeter can be specified by using the `--set key=value[,ke
 | `startupProbe.periodSeconds`  | How often (in seconds) to perform the probe.              | 5                                          |
 | `startupProbe.successThreshold` | Minimum consecutive successes for the probe to be considered successful.               | 1                                          |
 | `startupProbe.failureThreshold` | Minimum consecutive failures for the probe to be considered failed after having succeeded | 24              |
-| `route.loadBalancer.webconsole`     | Controls if a load balancer service is created for the MQ web console.       | `false`                                    |
+| `route.loadBalancer.annotations`          | Additional annotations to be added to the load balancer service.                 |`{}`                                      |
 | `route.loadBalancer.mqtraffic `     | Controls if a load balancer service is created for the MQ data traffic.      | `false`                                    |
+| `route.loadBalancer.webconsole`     | Controls if a load balancer service is created for the MQ web console.       | `false`                                    |
 | `route.nodePort.webconsole`     | Controls if a node port is created for the MQ web console.       | `false`                                    |
 | `route.nodePort.mqtraffic `     | Controls if a node port is created for the MQ data traffic.      | `false`                                    |
 | `route.openShiftRoute.webconsole`     | Controls if an OpenShift Route is created for the MQ web console.       | `false`                                    |

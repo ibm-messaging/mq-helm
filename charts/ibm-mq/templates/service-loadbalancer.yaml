@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2022
+# © Copyright IBM Corporation 2022, 2023
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 {{- if or (.Values.route.loadBalancer.mqtraffic) (.Values.route.loadBalancer.webconsole) }}
 apiVersion: v1
 kind: Service
@@ -18,6 +19,11 @@ metadata:
   name: {{ include "ibm-mq.fullname" . }}-loadbalancer
   labels:
     {{- include "ibm-mq.labels" . | nindent 4 }}
+  # Additional annotations to be added to the load balancer annotations
+  {{- with .Values.route.loadBalancer.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}    
 spec:
   type: LoadBalancer
   ports:
