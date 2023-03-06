@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2021, 2022
+# © Copyright IBM Corporation 2021, 2023
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ image:
   # repository is the container repository to use
   repository: icr.io/ibm-messaging/mq
   # tag is the tag to use for the container repository
-  tag: 9.3.1.0-r1
+  tag: 9.3.2.0-r1
   # pullSecret is the secret to use when pulling the image from a private registry
   pullSecret:
   # pullPolicy is either IfNotPresent or Always (https://kubernetes.io/docs/concepts/containers/images/)
@@ -80,6 +80,8 @@ security:
   context:
     fsGroup:
     supplementalGroups: []
+    seccompProfile:
+      type:
   # initVolumeAsRoot specifies whether or not storage provider requires root permissions to initialize
   initVolumeAsRoot: false
   runAsUser:
@@ -152,6 +154,8 @@ route:
     loadBalancer:
       webconsole: false
       mqtraffic: false
+      # Additional annotations to be added to the load balancer annotations
+      annotations: {}
 
 # log section specifies settings for MQ error logs
 log:

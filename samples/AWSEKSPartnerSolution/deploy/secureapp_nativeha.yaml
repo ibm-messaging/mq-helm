@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2021, 2023
+# © Copyright IBM Corporation 2023
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,10 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-image:
-  repository: cp.icr.io/cp/ibm-mqadvanced-server
-  tag: 9.3.2.0-r1-amd64
-  pullSecret: ibm-entitlement-key
 license: accept
 queueManager:
   nativeha:
@@ -32,6 +28,10 @@ queueManager:
 persistence:
   qmPVC:
     enable: true
+    storageClassName: gp2
+security:
+  context:
+    fsGroup: 0
 pki:
   keys:
     - name: default
@@ -48,14 +48,16 @@ pki:
           - app.crt
 metadata:
   annotations:
-    productName: "IBM MQ Advanced for Non-Production with CP4I License"
-    productID: "21dfe9a0f00f444f888756d835334909"
-    productChargedContainers: "qmgr"
-    productMetric: "VIRTUAL_PROCESSOR_CORE"
-    productCloudpakRatio: "4:1"
-    cloudpakName: "IBM Cloud Pak for Integration"
-    cloudpakId: "c8b82d189e7545f0892db9ef2731b90d"
+    productName: "IBM MQ Advanced for Developers"
+    productID: "2f886a3eefbe4ccb89b2adb97c78b9cb"
+    productChargedContainers: ""
+    productMetric: "FREE"
 route:
-  openShiftRoute:
+  nodePort:
     webconsole: true
     mqtraffic: true
+  loadBalancer:
+    webconsole: true
+    mqtraffic: true
+    annotations: 
+      service.beta.kubernetes.io/aws-load-balancer-internal: "true"

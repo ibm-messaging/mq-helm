@@ -106,6 +106,10 @@ spec:
       serviceAccountName: {{ include "ibm-mq.fullname" ( . ) }}
       securityContext:
         fsGroup: {{ .Values.security.context.fsGroup }}
+        {{- if .Values.security.context.seccompProfile.type }}
+        seccompProfile: 
+          type: {{ .Values.security.context.seccompProfile.type }}
+        {{- end }}
         supplementalGroups:
         {{- range $group := .Values.security.context.supplementalGroups }}
           - {{ $group -}}
