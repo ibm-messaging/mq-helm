@@ -161,10 +161,14 @@ Alternatively, each paremeter can be specified by using the `--set key=value[,ke
 | `route.loadBalancer.annotations`          | Additional annotations to be added to the load balancer service.                 |`{}`                                      |
 | `route.loadBalancer.mqtraffic `     | Controls if a load balancer service is created for the MQ data traffic.      | `false`                                    |
 | `route.loadBalancer.webconsole`     | Controls if a load balancer service is created for the MQ web console.       | `false`                                    |
+| `route.loadBalancer.loadBalancerSourceRanges`          | This is an array of CIDRs that can be added to a loadbalancer to restrict traffic      |`[]`                  |
 | `route.nodePort.webconsole`     | Controls if a node port is created for the MQ web console.       | `false`                                    |
 | `route.nodePort.mqtraffic `     | Controls if a node port is created for the MQ data traffic.      | `false`                                    |
 | `route.openShiftRoute.webconsole`     | Controls if an OpenShift Route is created for the MQ web console.       | `false`                                    |
 | `route.openShiftRoute.mqtraffic `     | Controls if an OpenShift Route is created for the MQ data traffic.      | `false`                                    |
+| `route.ingress.annotations`          | Additional annotations to be added to an ingress.                 |`{}`                                      |
+| `route.ingress.mqtraffic `     | Controls if an ingress is created for the MQ data traffic.      | `false`                                    |
+| `route.ingress.webconsole`     | Controls if an ingress is created for the MQ web console.       | `false`                                    |
 | `log.format`                    | Which log format to use for this container. Use `json`` for JSON-formatted logs from the container. Use `basic` for text-formatted messages. | `basic`                                 |
 | `log.debug`                     | Enables additional log output for debug purposes. | `false` |
 | `trace.strmqm`                  | Whether to enable MQ trace on the `strmqm` command | `false` |
