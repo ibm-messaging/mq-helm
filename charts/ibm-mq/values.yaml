@@ -156,6 +156,23 @@ route:
       mqtraffic: false
       # Additional annotations to be added to the load balancer annotations
       annotations: {}
+      loadBalancerSourceRanges: []
+    ingress:
+      webconsole: 
+        enable: false
+        hostname: 
+        path: /
+        tls: 
+          enable: false 
+          secret: 
+      mqtraffic: 
+        enable: false
+        hostname: 
+        path: /
+        tls: 
+          enable: false
+          secret: 
+      annotations: {}
 
 # log section specifies settings for MQ error logs
 log:
