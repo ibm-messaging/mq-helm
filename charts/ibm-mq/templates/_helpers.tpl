@@ -61,6 +61,18 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
+Common labels without version info
+
+     Explictly decided not to include version numbers as this
+     causes problems during a helm upgrade.
+
+*/}}
+{{- define "ibm-mq.labelsNoVersion" -}}
+{{ include "ibm-mq.selectorLabels" . }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
 Selector labels
 */}}
 {{- define "ibm-mq.selectorLabels" -}}

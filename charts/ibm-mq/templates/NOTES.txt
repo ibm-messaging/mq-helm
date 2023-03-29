@@ -18,5 +18,12 @@ Get the load balancer exposed MQ Console URL by running these commands:
   echo https://$CONSOLE_IP:$CONSOLE_PORT/ibmmq/console
 {{ end -}}
 
+{{- if .Values.route.loadBalancer.mqtraffic }}
+Get the load balancer exposed MQ queueManager URL by running these commands:
+  export MQ_PORT=1414
+  export MQSERVER_IP=$(kubectl get services {{ include "ibm-mq.fullname" . }}-loadbalancer -n {{ .Release.Namespace }} -o jsonpath="{..hostname}")$(kubectl get services {{ include "ibm-mq.fullname" . }}-loadbalancer -n {{ .Release.Namespace }} -o jsonpath="{..ip}")
+  echo "$MQSERVER_IP($MQ_PORT)"
+{{ end -}}
+
 The MQ connection information for clients inside the cluster is as follows:
   {{ include "ibm-mq.fullname" . }}:1414

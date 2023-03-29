@@ -35,6 +35,12 @@ spec:
   - port: 9443
     name: console-https
   {{- end }}
+  {{- if .Values.route.loadBalancer.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range $group := .Values.route.loadBalancer.loadBalancerSourceRanges }}
+    - {{ $group -}}
+  {{ end }}
+  {{- end }}
   selector:
 {{- include "ibm-mq.selectorLabels" . | nindent 4 }}
 {{- end }}
