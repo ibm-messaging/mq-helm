@@ -158,7 +158,14 @@ Alternatively, each paremeter can be specified by using the `--set key=value[,ke
 | `startupProbe.periodSeconds`  | How often (in seconds) to perform the probe.              | 5                                          |
 | `startupProbe.successThreshold` | Minimum consecutive successes for the probe to be considered successful.               | 1                                          |
 | `startupProbe.failureThreshold` | Minimum consecutive failures for the probe to be considered failed after having succeeded | 24              |
+| `route.ingress.annotations`          | Additional annotations to be added to an ingress.                 |`{}`                                      |
+| `route.ingress.webconsole.enable `     | Controls if an ingress is created for the MQ web console traffic. For more information, see https://kubernetes.io/docs/concepts/services-networking/ingress/ | `false`                                    |
+| `route.ingress.webconsole.hostname `     | Specifies the host value of the ingress rule.     | `false`                                    |
+| `route.ingress.webconsole.path `     | Specifies the path of the ingress rule.      | `/`                                    |
+| `route.ingress.webconsole.tls.enable `     | If TLS is enabled for the web console ingress.      | `false`                                    |
+| `route.ingress.webconsole.tls.secret `     | The kubernetes secret containing the certificates to be used.      | `false`                                   |
 | `route.loadBalancer.annotations`          | Additional annotations to be added to the load balancer service.                 |`{}`                                      |
+| `route.loadBalancer.loadBalancerSourceRanges`          | This is an array of CIDRs that can be added to a loadbalancer to restrict traffic      |`[]`                  |
 | `route.loadBalancer.mqtraffic `     | Controls if a load balancer service is created for the MQ data traffic.      | `false`                                    |
 | `route.loadBalancer.webconsole`     | Controls if a load balancer service is created for the MQ web console.       | `false`                                    |
 | `route.nodePort.webconsole`     | Controls if a node port is created for the MQ web console.       | `false`                                    |

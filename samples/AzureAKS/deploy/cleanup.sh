@@ -27,4 +27,3 @@ kubectl delete pvc log-secureapphelm-ibm-mq-2 -n $TARGET_NAMESPACE
 kubectl delete pvc qm-secureapphelm-ibm-mq-0 -n $TARGET_NAMESPACE
 kubectl delete pvc qm-secureapphelm-ibm-mq-1 -n $TARGET_NAMESPACE
 kubectl delete pvc qm-secureapphelm-ibm-mq-2 -n $TARGET_NAMESPACE
-kubectl delete service secureapphelm-ibm-mq-qm-loadbalancer -n $TARGET_NAMESPACE

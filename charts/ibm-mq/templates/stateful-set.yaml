@@ -478,7 +478,7 @@ spec:
   - metadata:
       name: {{ $dataVolumeClaimName }}
       labels:
-{{- include "ibm-mq.labels" . | nindent 8 }}
+{{- include "ibm-mq.labelsNoVersion" . | nindent 8 }}
     spec:
       # If present, use the storageClassName from the values.yaml, else use the
       # default storageClass setup by Kubernetes Administrator
@@ -494,7 +494,7 @@ spec:
   - metadata:
       name: {{ $logVolumeClaimName }}
       labels:
-{{- include "ibm-mq.labels" . | nindent 8 }}
+{{- include "ibm-mq.labelsNoVersion" . | nindent 8 }}
     spec:
       # If present, use the storageClassName from the values.yaml, else use the
       # default storageClass setup by Kubernetes Administrator
@@ -510,7 +510,7 @@ spec:
   - metadata:
       name: {{ $qmVolumeClaimName }}
       labels:
-{{- include "ibm-mq.labels" . | nindent 8 }}
+{{- include "ibm-mq.labelsNoVersion" . | nindent 8 }}
     spec:
       # If present, use the storageClassName from the values.yaml, else use the
       # default storageClass setup by Kubernetes Administrator
