@@ -165,13 +165,6 @@ route:
         tls: 
           enable: false 
           secret: 
-      mqtraffic: 
-        enable: false
-        hostname: 
-        path: /
-        tls: 
-          enable: false
-          secret: 
       annotations: {}
 
 # log section specifies settings for MQ error logs

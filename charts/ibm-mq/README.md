@@ -167,7 +167,6 @@ Alternatively, each paremeter can be specified by using the `--set key=value[,ke
 | `route.openShiftRoute.webconsole`     | Controls if an OpenShift Route is created for the MQ web console.       | `false`                                    |
 | `route.openShiftRoute.mqtraffic `     | Controls if an OpenShift Route is created for the MQ data traffic.      | `false`                                    |
 | `route.ingress.annotations`          | Additional annotations to be added to an ingress.                 |`{}`                                      |
-| `route.ingress.mqtraffic `     | Controls if an ingress is created for the MQ data traffic.      | `false`                                    |
 | `route.ingress.webconsole`     | Controls if an ingress is created for the MQ web console.       | `false`                                    |
 | `log.format`                    | Which log format to use for this container. Use `json`` for JSON-formatted logs from the container. Use `basic` for text-formatted messages. | `basic`                                 |
 | `log.debug`                     | Enables additional log output for debug purposes. | `false` |
