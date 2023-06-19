@@ -13,7 +13,7 @@
 # limitations under the License.
 image:
   repository: cp.icr.io/cp/ibm-mqadvanced-server
-  tag: 9.3.2.0-r1-amd64
+  tag: 9.3.3.0-r1-amd64
   pullSecret: ibm-entitlement-key
 license: accept
 queueManager:
