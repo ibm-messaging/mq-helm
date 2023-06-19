@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This chart deploys a single IBM® MQ server (Queue Manager) built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified using the [9.3.2 branch](https://github.com/ibm-messaging/mq-container/tree/9.3.2). IBM MQ is messaging middleware that simplifies and accelerates the integration of diverse applications and business data across multiple platforms.  It uses message queues, topics and subscriptions to facilitate the exchanges of information and offers a single messaging solution for cloud and on-premises environments.
+This chart deploys a single IBM® MQ server (Queue Manager) built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified using the [9.3.3 branch](https://github.com/ibm-messaging/mq-container/tree/9.3.3). IBM MQ is messaging middleware that simplifies and accelerates the integration of diverse applications and business data across multiple platforms.  It uses message queues, topics and subscriptions to facilitate the exchanges of information and offers a single messaging solution for cloud and on-premises environments.
 
 ## Chart Details
 
@@ -66,12 +66,12 @@ To understand how to update a deployed chart there are two aspects that need to 
      * When the `queueManager.nativeha.enable` is set, the number of replicas will be defined as `3`
      * When the `queueManager.multiinstance.enable` is set the number of replicas will be defined as `2`
      * Otherwise only a single replica is deployed.
-1. The `queueManager.updateStrategy` specify the update strategy for the StatefulSet. In the case of Native HA and Multi-instance this should always be onDelete, and therefore this parameter has no affect, while for other scenarios `RollingUpdate` is the defaut.
+1. The `queueManager.updateStrategy` specify the update strategy for the StatefulSet. In the case of Native HA and Multi-instance this should always be onDelete, and therefore this parameter has no affect, while for other scenarios `RollingUpdate` is the default.
 
-The Kubernetes [StatefulSet rolling update](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#rolling-updates) works by updating one replica at a time, not attempting to update another "until an updated Pod is Running and Ready". In many situtations this is logical but in the case of Native HA and Multi-instance this prevents all the Pods from being updated automatically. For instance in a running environment prior to an upgrade there will be three pods running, but only one ready. The first Pod that is selected to be upgraded will be restarted and one of the remaining two instances will be elected the leader. The Pod being upgraded will restart and reach the running state, but will not become ready as there is another Pod acting as the leader. To avoid this situation the updateStrategy is always set to onDelete for Native HA and Multi-instance. This means that a script needs to be run after the helm update has been applied to ripple through the Pods deleting one after another once the previous Pod has reached a running state.
+The Kubernetes [StatefulSet rolling update](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#rolling-updates) works by updating one replica at a time, not attempting to update another "until an updated Pod is Running and Ready". In many situations this is logical but in the case of Native HA and Multi-instance this prevents all the Pods from being updated automatically. For instance in a running environment prior to an upgrade there will be three pods running, but only one ready. The first Pod that is selected to be upgraded will be restarted and one of the remaining two instances will be elected the leader. The Pod being upgraded will restart and reach the running state, but will not become ready as there is another Pod acting as the leader. To avoid this situation the updateStrategy is always set to onDelete for Native HA and Multi-instance. This means that a script needs to be run after the helm update has been applied to ripple through the Pods deleting one after another once the previous Pod has reached a running state.
 
 A [sample script](../../samples/genericresources/rollingupdate/demoRollingUpdate.sh) is provided that can be run in an interactive mode, or silently. The script has the following usage:
-``demoRollingUpdate [statefulSetName] [namespace]``
+``demoRollingUpdate.sh [statefulSetName] [namespace]``
 where:
 * *statefulSetName*: name of the statefulSetName. This corresponds to the helm chart name with ibm-mq appended.
 * *namespace*: the Kubernetes namespace of the statefulSet     
@@ -80,7 +80,7 @@ The following shows how to invoke in the two scenarios, where the helm chart dep
 * Interactive: ```manualAcceptance=true ../../samples/genericresources/rollingupdate/demoRollingUpdate.sh myhelmdeployment-ibm-mq mq```
 * Automated: ```manualAcceptance=false ../../samples/genericresources/rollingupdate/demoRollingUpdate.sh myhelmdeployment-ibm-mq mq```
 
-> **Warning**: The `sample script` deletes Pods and there are many situtations where this can cause an extended downtime or the queue manager becomes unavailable. The rolling update `sample script` may need extensive changes to meet your production cloud requirements.  
+> **Warning**: The `sample script` deletes Pods and there are many situations where this can cause an extended downtime or the queue manager becomes unavailable. The rolling update `sample script` may need extensive changes to meet your production cloud requirements.  
 
 ### Uninstalling the Chart
 
@@ -100,15 +100,15 @@ A YAML file that specifies these values can be provided while installing the cha
 
 > **Tip**: You can use the default values.yaml as an example yaml file to customize
 
-Alternatively, each paremeter can be specified by using the `--set key=value[,key=value]` argument to `helm install`.
+Alternatively, each parameter can be specified by using the `--set key=value[,key=value]` argument to `helm install`.
 
 | Parameter                       | Description                                                     | Default                                    |
 | ------------------------------- | --------------------------------------------------------------- | ------------------------------------------ |
 | `license`                       | Set to `accept` to accept the terms of the IBM license          | `"not accepted"`                           |
 | `image.repository`              | Image full name including repository                            | `ibmcom/mq`                                |
-| `image.tag`                     | Image tag                                                       | `9.3.2.0-r1`                               |
+| `image.tag`                     | Image tag                                                       | `9.3.3.0-r1`                               |
 | `image.pullPolicy`              | Setting that controls when the kubelet attempts to pull the specified image.                                               | `IfNotPresent`                             |
-| `image.pullSecret`              | An optional list of references to secrets in the same namespace to use for pulling any of the images used by this QueueManager. If specified, these secrets will be passed to individual puller implementations for them to use. For example, in the case of docker, only DockerConfig type secrets are honored. For more information, see [here](https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod)   | `nil`                                      |
+| `image.pullSecret`              | An optional list of references to secrets in the same namespace to use for pulling any of the images used by this QueueManager. If specified, these secrets will be passed to individual puller implementations for them to use. For example, in the case of docker, only DockerConfig type secrets are honoured. For more information, see [here](https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod)   | `nil`                                      |
 | `metadata.labels`               | The labels field serves as a pass-through for Pod labels. Users can add any label to this field and have it apply to the Pod.                      | `{}`                                       |
 | `metadata.annotations`          | Additional annotations to be added to the Pod annotations. This is required for licensing. Please consult [here](#Supplying-licensing-annotations)                 |`{}`                                      |
 | `persistence.dataPVC.enable`           | By default all data and recovery logs are persisted to a Pod's qmPVC. dataPVC is an optional PersistentVolume which can be enabled using this field. This PersistentVolume is used for MQ persisted data, including configuration, queues and messages. If Multi-instance is enabled this value is set to true.                  | `false`                                     |
@@ -118,7 +118,7 @@ Alternatively, each paremeter can be specified by using the `--set key=value[,ke
 | `persistence.logPVC.enable`           | By default all data and recovery logs are persisted to a Pod's qmPVC. logPVC is an optional PersistentVolume which can be enabled using this field. This PersistentVolume is used for MQ recovery logs. If Multi-instance is enabled this value is set to true.                 | `false`                                     |
 | `persistence.logPVC.name`      |  Suffix for the PVC name               | `data`                                      |
 | `persistence.logPVC.size`      | Size of the PersistentVolume to pass to Kubernetes, including SI units. For example, 2Gi.              | `2Gi`                                      |
-| `persistence.logPVC.storageClassName`  | Storage class to use for this volume. This can be of type ReadWriteOnce or ReadWriteMany, however it is generally good practice to use Block Storage (ReadWriteOnce) for Native HA deployments. If Multi-instance is enabled, the storage class must be of type ReadWriteMany.If this value is not specified, then the default storage class will be used.                            | `""`                                       |
+| `persistence.logPVC.storageClassName`  | Storage class to use for this volume. This can be of type ReadWriteOnce or ReadWriteMany, however it is generally good practice to use Block Storage (ReadWriteOnce) for Native HA deployments. If Multi-instance is enabled, the storage class must be of type ReadWriteMany. If this value is not specified, then the default storage class will be used.                            | `""`                                       |
 | `persistence.qmPVC.enable`           | Default PersistentVolume for any data normally under /var/mqm. Will contain all persisted data and recovery logs, if no other volumes are specified. If Multi-instance is enabled this value is set to true.                 | `true`                                     |
 | `persistence.qmPVC.name`      |  Suffix for the PVC name               | `data`                                      |
 | `persistence.qmPVC.size`      | Size of the PersistentVolume to pass to Kubernetes, including SI units. For example, 2Gi.              | `2Gi`                                      |
@@ -201,7 +201,24 @@ By default, the MQ container output is in a basic human-readable format.  You ca
 
 ## Connecting to the web console
 
-The MQ image includes the MQ web server.  The web server runs the web console, and the MQ REST APIs.  By default, the MQ server deployed by this chart is accessible via a `ClusterIP` [Service](https://kubernetes.io/docs/concepts/services-networking/service/), which is only accessible from within the Kubernetes cluster.  Optionally an OpenShift Route or Kubernetes NodePort can be configured to connect to the web console from outside of the Kubernetes cluster.
+The MQ image includes the MQ web server.  The web server runs the web console, and the MQ REST APIs.  By default, the MQ server deployed by this chart is accessible via a `ClusterIP` [Service](https://kubernetes.io/docs/concepts/services-networking/service/), which is only accessible from within the Kubernetes cluster.  Optionally an OpenShift Route, Load balancer or Kubernetes NodePort can be configured to connect to the web console from outside of the Kubernetes cluster.
+
+## Considerations when upgrading the Kubernetes cluster
+
+During a Kubernetes cluster upgrade the worker nodes are made unschedulable, to avoid new pods from being deployed, and drained to move the current workload to other worker nodes. Once all pods are removed, the worker node can be safely upgraded. Often additional worker nodes are created during the upgrade process to provide capacity for these drained pods. To preserve an applications availability pod disruption budget (PDB) allows you to declare the number of pods that should be available. This acts as a break in the upgrade process assuring a balance between the speed of the upgrade and application availability. The exact semantics of the upgrade process differs from one Kubernetes distribution to another but the high level process remains similar.
+
+PDB’s allow you to define the minAvailable or maxUnavailable pods for a built-in Kubernetes Controller (such as a deployment, statefulSet etc). To determine the number of pods either available or not available, it uses the Readiness of the pod. In the case of Native HA during normal operations there are 2 un-ready pods (with liveness settings of true), and 1 ready pod. This design was taken as it allows Kubernetes to automatically route the traffic to the pod that is the leader for the Native HA queue manager. This causes an issue when using a PDB with either minAvailable set to 2, or maxUnavailable set to 1. In normal operations even before an upgrade the PDB will consider minAvailable to be 1, and maxUnavailable 2. Therefore, we need some additional intelligence to help the process. What we want to achieve is the following:
+
+1.	Prevent the Kubernetes cluster upgrade from deleting MQ Native HA pods as it does not have the intelligence to do so.
+2.	Delete, in a controlled manner, the MQ Native HA pods when a node is unschedulable.
+
+The first is achieved by using a PDB, with either a minAvailable set to 2 or a maxUnavailable set to 1. A sample PDB is provider [here](../../samples/genericresources/kubernetesupgrade/mqnativeha-pdb.yaml). For the second, while the Kubernetes cluster upgrade is running, the [drainMQContainers](../../samples/genericresources/kubernetesupgrade/drainMQContainers.sh) script is run at the same time. While running, every 30 seconds it checks for unscheduled nodes, if one or more are identified it will query for IBM MQ pods, and check if the queue manager has connectivity and data is in-sync across the 3 containers. If so, it is safe to delete the one pod, as Native HA will be able to rapidly recover. 
+
+The [drainMQContainer](../../samples/genericresources/kubernetesupgrade/drainMQContainers.sh) script is a sample that may require customization for your own environment and use case. The script has the following usage: 
+``drainMQContainer.sh [namespace]`` where:
+
+* *namespace*: the Kubernetes namespace of the statefulSets to be drained
+
 
 ## Supplying certificates to be used for TLS
 
@@ -211,7 +228,7 @@ If you supply invalid configuration then the container will terminate with an ap
 
 ### Supplying certificates which contain the public and private keys
 
-When supplying a Kubernetes secret you must ensure that the secret item name ends in `.crt` for public certificates and `.key` for private keys. For example: `tls.crt` and `tls.key`. If your certificate has been issued by a Certificate Authority, then the certificate from the CA must be included as a seperate item with the `.crt` extension. For example: `ca.crt`.
+When supplying a Kubernetes secret you must ensure that the secret item name ends in `.crt` for public certificates and `.key` for private keys. For example: `tls.crt` and `tls.key`. If your certificate has been issued by a Certificate Authority, then the certificate from the CA must be included as a separate item with the `.crt` extension. For example: `ca.crt`.
 
 The format of the YAML objects for `pki.keys` value is as follows:
 
