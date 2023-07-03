@@ -245,8 +245,7 @@ spec:
           - name: MQ_MULTI_INSTANCE
             value: "{{ .Values.queueManager.multiinstance.enable | default false }}"
           {{- end }}
-          - name: MQ_NATIVE_HA
-            value: "true"
+          {{- if .Values.queueManager.nativeha.enable }}
           - name: MQ_NATIVE_HA_INSTANCE_0_NAME
             value: {{ include "ibm-mq.pod0.name" . }}
           - name: MQ_NATIVE_HA_INSTANCE_0_REPLICATION_ADDRESS
@@ -259,6 +258,7 @@ spec:
             value: {{ include "ibm-mq.pod2.name" . }}
           - name: MQ_NATIVE_HA_INSTANCE_2_REPLICATION_ADDRESS
             value: {{ include "ibm-mq.pod2.service" . }}(9414)
+          {{- end }}
           - name: LOG_FORMAT
             value: {{ .Values.log.format | default "basic" }}
           - name: MQ_ENABLE_METRICS
