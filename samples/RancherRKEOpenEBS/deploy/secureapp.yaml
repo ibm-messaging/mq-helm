@@ -23,6 +23,9 @@ queueManager:
         - mq.ini
   nativeha:
     enable: false
+  envVariables:
+    - name: MQ_ADMIN_PASSWORD
+      value: "Passw0rd"  
 persistence:
   qmPVC:
     enable: true
@@ -45,9 +48,6 @@ pki:
         secretName: helmsecure
         items:
           - app.crt
-envVariables:
-  - name: MQ_ADMIN_PASSWORD
-    value: "Passw0rd"
 metadata:
   annotations:
     productName: "IBM MQ Advanced for Developers"

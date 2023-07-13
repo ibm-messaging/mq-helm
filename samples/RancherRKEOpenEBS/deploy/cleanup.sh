@@ -13,17 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export TARGET_NAMESPACE=mqm
+export TARGET_NAMESPACE=${1:-"mqm"}
 
 helm delete secureapphelm
 kubectl delete secret helmsecure -n $TARGET_NAMESPACE
 kubectl delete configmap helmsecure -n $TARGET_NAMESPACE
-kubectl delete pvc data-secureapphelm-ibm-mq-0 -n $TARGET_NAMESPACE
-kubectl delete pvc data-secureapphelm-ibm-mq-1 -n $TARGET_NAMESPACE
-kubectl delete pvc data-secureapphelm-ibm-mq-2 -n $TARGET_NAMESPACE
-kubectl delete pvc log-secureapphelm-ibm-mq-0 -n $TARGET_NAMESPACE
-kubectl delete pvc log-secureapphelm-ibm-mq-1 -n $TARGET_NAMESPACE
-kubectl delete pvc log-secureapphelm-ibm-mq-2 -n $TARGET_NAMESPACE
-kubectl delete pvc qm-secureapphelm-ibm-mq-0 -n $TARGET_NAMESPACE
-kubectl delete pvc qm-secureapphelm-ibm-mq-1 -n $TARGET_NAMESPACE
-kubectl delete pvc qm-secureapphelm-ibm-mq-2 -n $TARGET_NAMESPACE
+kubectl delete pvc qm-secureapphelm-ibm-mq-0 $TARGET_NAMESPACE
