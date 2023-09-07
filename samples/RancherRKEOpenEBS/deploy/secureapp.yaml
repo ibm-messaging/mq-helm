@@ -13,6 +13,10 @@
 # limitations under the License.
 license: accept
 queueManager:
+  nativeha:
+    enable: true
+    tls:
+      secretName: helmsecure
   mqscConfigMaps:
     - name: helmsecure
       items:
@@ -21,16 +25,20 @@ queueManager:
     - name: helmsecure
       items:
         - mq.ini
-  nativeha:
-    enable: false
   envVariables:
     - name: MQ_ADMIN_PASSWORD
       value: "Passw0rd"  
 persistence:
   qmPVC:
     enable: true
-    storageClassName: openebs-hostpath
+    storageClassName: openebs-lvm
     size: 5Gi
+  logPVC:
+    enable: true
+    storageClassName: openebs-lvm
+    size: 5Gi      
+  dataPVC:
+    enable: false
 security:
   context:
     fsGroup: 0
