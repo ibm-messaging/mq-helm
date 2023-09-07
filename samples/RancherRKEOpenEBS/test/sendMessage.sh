@@ -1,5 +1,5 @@
 #!/bin/bash
-# © Copyright IBM Corporation 2021, 2022
+# © Copyright IBM Corporation 2023
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ export TARGET_NAMESPACE=${1:-"default"}
 export MQCCDTURL="${DIR}/ccdt_generated.json"
 export MQSSLKEYR="${DIR}/../../genericresources/createcerts/application"
 
-export PORT="$(kubectl get services secureapphelm-ibm-mq-qm -n mqm -o jsonpath="{.spec.ports[?(@.port=="1414")].nodePort}" | awk '{print $1}')"
+export PORT="$(kubectl get services secureapphelm-ibm-mq-qm -n $TARGET_NAMESPACE -o jsonpath="{.spec.ports[?(@.port=="1414")].nodePort}" | awk '{print $1}')"
 export IPADDRESS="$(kubectl get nodes -o jsonpath='{..addresses[1].address}' | awk '{print $1}')"
 
 ( echo "cat <<EOF" ; cat ccdt_template.json ; echo EOF ) | sh > ccdt_generated.json
