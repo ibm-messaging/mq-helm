@@ -1,0 +1,25 @@
+{
+    "channel":
+    [
+        {
+            "name": "MTLSQMCHL",
+            "clientConnection":
+            {
+                "connection":
+                [
+                    {
+                        "host": "$IPADDRESS",
+                        "port": $PORT
+                    }
+                ],
+                "queueManager": "secureapphelm"
+            },
+            "transmissionSecurity":
+            {
+              "cipherSpecification": "ANY_TLS12_OR_HIGHER",
+              "certificateLabel": "aceclient"
+            },
+            "type": "clientConnection"
+        }
+   ]
+}

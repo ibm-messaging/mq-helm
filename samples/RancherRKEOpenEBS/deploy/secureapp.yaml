@@ -1,0 +1,62 @@
+# © Copyright IBM Corporation 2023
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+license: accept
+queueManager:
+  nativeha:
+    enable: true
+    tls:
+      secretName: helmsecure
+  mqscConfigMaps:
+    - name: helmsecure
+      items:
+        - mq.mqsc
+  qminiConfigMaps:
+    - name: helmsecure
+      items:
+        - mq.ini
+  envVariables:
+    - name: MQ_ADMIN_PASSWORD
+      value: "Passw0rd"  
+persistence:
+  qmPVC:
+    enable: true
+    storageClassName: openebs-hostpath
+    size: 5Gi
+security:
+  context:
+    fsGroup: 0
+pki:
+  keys:
+    - name: default
+      secret:
+        secretName: helmsecure
+        items:
+          - tls.key
+          - tls.crt
+  trust:
+    - name: default
+      secret:
+        secretName: helmsecure
+        items:
+          - app.crt
+metadata:
+  annotations:
+    productName: "IBM MQ Advanced for Developers"
+    productID: "2f886a3eefbe4ccb89b2adb97c78b9cb"
+    productChargedContainers: ""
+    productMetric: "FREE"
+route:
+  nodePort:
+    webconsole: true
+    mqtraffic: true
