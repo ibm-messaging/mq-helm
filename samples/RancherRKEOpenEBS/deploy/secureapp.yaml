@@ -31,14 +31,8 @@ queueManager:
 persistence:
   qmPVC:
     enable: true
-    storageClassName: openebs-lvm
+    storageClassName: openebs-hostpath
     size: 5Gi
-  logPVC:
-    enable: true
-    storageClassName: openebs-lvm
-    size: 5Gi      
-  dataPVC:
-    enable: false
 security:
   context:
     fsGroup: 0

@@ -1,21 +1,21 @@
-# Deploying the IBM MQ Native HA using the Helm Chart on minikube
-These instructions will deploy a single instance Queue Manager on a single machine using [RKE2](https://docs.rke2.io).
+# Deploying the IBM MQ Native HA using the Helm Chart on Rancher RKE2 and OpenEBS
+These instructions will deploy IBM MQ Native HA on a single machine using [RKE2](https://docs.rke2.io).
 
 ## Pre-reqs
 Prior to using the Helm chart you will need to install three dependencies:
 1. [Helm version 3](https://helm.sh/docs/intro/install/)
 2. [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 3. [RKE2](https://docs.rke2.io/install/quickstart)
-4. [OpenEBS](https://openebs.io/docs/2.12.x/user-guides/installation)
+4. [OpenEBS](https://openebs.io/docs/user-guides/installation)
 
 ## Installation
-1. Install your RKE2 Cluster on a Cloud provider or a Linux box and deploy the OpenEBS chart. 
-1. Run the installation command to deploy an instance of the helm chart: `./install.sh <namespace>`            
+1. Install your RKE2 Cluster on a Cloud provider or a Linux box and deploy the OpenEBS chart. To install OpenEBS you can follow this procedure https://openebs.io/docs/user-guides/installation, it will install by default the Storage Class `openebs-hostpath`. You can install some aditional provider like LVM, but it's optional.
+2. Run the installation command to deploy an instance of the helm chart: `./install.sh <namespace>`            
     Where \<namespace\> is the Kubernetes namespace where the resources should be deployed into. This will deploy a number of resources:
     * The IBM MQ Helm Chart using the properties within the [secureapp.yaml](deploy/secureapp.yaml) file.
     * A configMap with MQ configuration to define a default Queue, and the security required.
     * A secret that includes certificates and keys from the `genericresources/createcerts` directory. Assuring the communication in MQ is secure.
-1. This will take a minute or so to deploy, and the status can be checked with the following command: `kubectl -n mqm rollout status statefulset secureapphelm-ibm-mq --watch`.
+1. This will take a minute or so to deploy, and the status can be checked with the following command: `kubectl -n $TARGET_NAMESPACE rollout status statefulset secureapphelm-ibm-mq --watch`.
 
 ## Testing
 
