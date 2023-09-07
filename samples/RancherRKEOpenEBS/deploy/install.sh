@@ -1,5 +1,5 @@
 #! /bin/bash
-# © Copyright IBM Corporation 2021
+# © Copyright IBM Corporation 2023
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export TARGET_NAMESPACE=${1:-"mqm"}
+export TARGET_NAMESPACE=${1:-"default"}
 export QM_KEY=$(cat ../../genericresources/createcerts/server.key | base64 | tr -d '\n')
 export QM_CERT=$(cat ../../genericresources/createcerts/server.crt | base64 | tr -d '\n')
 export APP_CERT=$(cat ../../genericresources/createcerts/application.crt | base64 | tr -d '\n')
@@ -23,4 +23,4 @@ export APP_CERT=$(cat ../../genericresources/createcerts/application.crt | base6
 kubectl config set-context --current --namespace=$TARGET_NAMESPACE
 kubectl apply -f mtlsqm.yaml
 
-helm install secureapphelm ../../../charts/ibm-mq -f secureapp.yaml
+helm upgrade --install secureapphelm ../../../charts/ibm-mq -f secureapp.yaml
