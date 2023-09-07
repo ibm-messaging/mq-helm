@@ -17,11 +17,11 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 export TARGET_NAMESPACE=${1:-"default"}
 export MQCCDTURL="${DIR}/ccdt_generated.json"
 export MQSSLKEYR="${DIR}/../../genericresources/createcerts/application"
-
+export MQRCVBLKTO=5
 export PORT="$(kubectl get services secureapphelm-ibm-mq-qm -n $TARGET_NAMESPACE -o jsonpath="{.spec.ports[?(@.port=="1414")].nodePort}" | awk '{print $1}')"
 export IPADDRESS="$(kubectl get nodes -o jsonpath='{..addresses[1].address}' | awk '{print $1}')"
 
 ( echo "cat <<EOF" ; cat ccdt_template.json ; echo EOF ) | sh > ccdt_generated.json
 
 echo "Starting amqsphac" secureapphelm
-docker run -it --rm --env MQCCDTURL="/home/mqm/ccdt_generated.json" --env MQSSLKEYR="/home/mqm/createcerts/application" --volume ${DIR}:/home/mqm --volume ${DIR}/../../genericresources/createcerts:/home/mqm/createcerts  --entrypoint /bin/sh ibmcom/mq:latest -c "/opt/mqm/samp/bin/amqsphac APPQ secureapphelm"
+/opt/mqm/samp/bin/amqsphac APPQ secureapphelm
