@@ -7,6 +7,7 @@ The following includes all the resources to test out the IBM MQ Helm Chart in se
    * [Azure AKS Free Tier using IBM MQ](AzureAKSFreeTier/README.md)
 * [Google Kubernetes Engine using IBM MQ Native HA](GoogleKubernetesEngine/README.md)
 * [IBM Cloud Kubernetes Service (IKS) using IBM MQ Native HA](IBMKubernetesService/README.md)
+* [Rancher RKE2 and OpenEBS using IBM MQ Native HA](RancherRKEOpenEBS/README.md)
 * [minikube on your own laptop](Minikube/README.md)
 * RedHat OpenShift using IBM MQ Native HA
    * Configured for the [IBM MQ Advanced for Developer container](OpenShiftNativeHA/README.md)
