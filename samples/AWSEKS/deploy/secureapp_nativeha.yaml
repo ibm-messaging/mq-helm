@@ -59,3 +59,5 @@ route:
   loadBalancer:
     webconsole: true
     mqtraffic: true
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "4"

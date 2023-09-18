@@ -19,7 +19,11 @@
               "cipherSpecification": "ANY_TLS12_OR_HIGHER",
               "certificateLabel": "aceclient"
             },
-            "type": "clientConnection"
+            "type": "clientConnection",
+            "connectionManagement":
+            {
+                "heartbeatInterval": 1
+            }
         }
    ]
 }
