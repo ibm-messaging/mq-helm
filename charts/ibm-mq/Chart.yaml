@@ -14,7 +14,7 @@
 apiVersion: v2
 name: ibm-mq
 description: IBM MQ queue manager
-version: 7.0.1
+version: 7.1.0
 type: application
 appVersion: 9.3.3.0
 kubeVersion: ">=1.18.0-0"

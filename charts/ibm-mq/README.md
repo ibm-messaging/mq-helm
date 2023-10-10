@@ -127,11 +127,6 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `resources.limits.memory`       | Kubernetes memory limit for each Pod of the Queue Manager container         | `0124Mi`                                    |
 | `resources.requests.cpu`        | Kubernetes CPU request for each Pod of the Queue Manager container          | `100m`                                     |
 | `resources.requests.memory`     | Kubernetes memory request for each Pod of the Queue Manager container       | `512Mi`                                    |
-| `security.context.fsGroup`      | A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to change the ownership of that volume to be owned by the pod: 1. The owning GID will be the FSGroup 2. The setgid bit is set (new files created in the volume will be owned by FSGroup) 3. The permission bits are OR'd with rw-rw---- If unset, the Kubelet will not modify the ownership and permissions of any volume.          | `nil`                                      |
-| `security.context.seccompProfile.type` | Seccomp stands for secure computing mode and when enabled restricts the calls that can be made to the kernel. For more information, see https://kubernetes.io/docs/tutorials/security/seccomp/ | `nil`                                  |
-| `security.context.supplementalGroups` | A list of groups applied to the first process run in each container, in addition to the container's primary GID. If unspecified, no groups will be added to any container. | `nil`                                  |
-| `security.initVolumeAsRoot`     | This affects the securityContext used by the container which initializes the PersistentVolume. Set this to true if you are using a storage provider which requires you to be the root user to access newly provisioned volumes. Setting this to true affects which Security Context Constraints (SCC) object you can use, and the Queue Manager may fail to start if you are not authorized to use an SCC which allows the root user. Defaults to false. For more information, see https://docs.openshift.com/container-platform/latest/authentication/managing-security-context-constraints.html. | `false`                  |
-| `security.runAsUser` | Controls which user ID the containers are run with.  | `nil`                               |
 | `queueManager.multiinstance.enable`    | Whether to run in Multi-instance mode, with two Pods (one active and one passive Pods). | `false`                     |
 | `queueManager.name`             | By default the Queue Manager will match the Helm release name. Use this field to change the Queue Manager name, for example if the Helm release name does not conform to the rules for naming a Queue Manager name (for example, a name longer than 48 characters).                                           | Helm release name                          |
 | `queueManager.nativeha.enable`    | Whether to run in Native HA mode, with three Pods (one active and two replica Pods). Native HA is available on x86, Linux on IBM Power and Linux on IBM Z. | `false`                     |
@@ -144,8 +139,14 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `queueManager.envVariables` | An array of YAML objects (name / value pairs) that detail the environment variables that should be associated with the Queue Manager container | `[]` |
 | `queueManager.terminationGracePeriodSeconds` | Optional duration in seconds the Pod needs to terminate gracefully. Value must be non-negative integer. The value zero indicates delete immediately. The target time in which ending the queue manager is attempted, escalating the phases of application disconnection. Essential queue manager maintenance tasks are interrupted and applications disconnected if necessary. Defaults to 30 seconds. | 30                |
 | `queueManager.updateStrategy`   | Specify the update strategy for the StatefulSet. In the case of Native HA and Multi-instance this should always be onDelete, and therefore this parameter has no affect. For further details regarding Native HA and Multi-instance update process consult the [Updating Native HA and Multi-instance section](#Updating-the-Chart). In the case of a single instance queue manager the default is RollingUpdate. | `RollingUpdate` - single instance, `onDelete` - Native HA  and Multi-instance |
+| `web.enable`    | Whether or not to enable the web server. Default is empty string, which causes the default behaviour of the container. Set to `true` to enable the web console, and `false` to disable. | `` 
 | `pki.keys`                      | An array of YAML objects that detail Kubernetes secrets containing TLS Certificates with private keys. For further details regarding how this is specified consult [Supplying certificates to be used for TLS](#Supplying-certificates-to-be-used-for-TLS) | `[]` |
-| `pki.trust`                     | An array of YAML objects that detail Kubernetes secrets containing TLS Certificates. For further details regarding how this is specified consult [Supplying certificates to be used for TLS](#Supplying-certificates-to-be-used-for-TLS)   | `[]` |
+| `pki.trust`                     | An array of YAML objects that detail Kubernetes secrets or configMaps containing TLS Certificates. For further details regarding how this is specified consult [Supplying certificates using secrets to be used for TLS](#Supplying-certificates-to-be-used-for-TLS) and [Supplying certificates using a configMap](#Supplying-certificates-using-a-configMap)   | `[]` |
+| `security.context.fsGroup`      | A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to change the ownership of that volume to be owned by the pod: 1. The owning GID will be the FSGroup 2. The setgid bit is set (new files created in the volume will be owned by FSGroup) 3. The permission bits are OR'd with rw-rw---- If unset, the Kubelet will not modify the ownership and permissions of any volume.          | `nil`                                      |
+| `security.context.seccompProfile.type` | Seccomp stands for secure computing mode and when enabled restricts the calls that can be made to the kernel. For more information, see https://kubernetes.io/docs/tutorials/security/seccomp/ | `nil`                                  |
+| `security.context.supplementalGroups` | A list of groups applied to the first process run in each container, in addition to the container's primary GID. If unspecified, no groups will be added to any container. | `nil`                                  |
+| `security.initVolumeAsRoot`     | This affects the securityContext used by the container which initializes the PersistentVolume. Set this to true if you are using a storage provider which requires you to be the root user to access newly provisioned volumes. Setting this to true affects which Security Context Constraints (SCC) object you can use, and the Queue Manager may fail to start if you are not authorized to use an SCC which allows the root user. Defaults to false. For more information, see https://docs.openshift.com/container-platform/latest/authentication/managing-security-context-constraints.html. | `false`                  |
+| `security.runAsUser` | Controls which user ID the containers are run with.  | `nil`                               |
 | `livenessProbe.initialDelaySeconds` | Number of seconds after the container has started before the probe is initiated. Defaults to 90 seconds for SingleInstance. Defaults to 0 seconds for a Native HA and Multi-instance deployments. | `90` - single instance, `0` - Native HA and Multi-instance |
 | `livenessProbe.periodSeconds`   | How often (in seconds) to perform the probe.                                       | 10                                         |
 | `livenessProbe.timeoutSeconds`  | Number of seconds after which the probe times out               | 5                                          |
@@ -222,9 +223,9 @@ The [drainMQContainer](../../samples/genericresources/kubernetesupgrade/drainMQC
 
 ## Supplying certificates to be used for TLS
 
-The `pki.trust` and `pki.keys` allow you to supply details of Kubernetes secrets that contain TLS certificates. By doing so the TLS certificates will be imported into the container at runtime and MQ will be configured to use them.
+The `pki.trust` and `pki.keys` allow you to supply details of Kubernetes secrets and configMaps that contain TLS certificates. Supplying certificates using configMaps is only permitted for `pki.trust`. By doing so the TLS certificates will be imported into the container at runtime and MQ will be configured to use them.
 
-If you supply invalid configuration then the container will terminate with an appropriate termination message. The next 2 sections will detail the requirements for supplying each type of certificate.
+If you supply invalid configuration then the container will terminate with an appropriate termination message. The next 3 sections will detail the requirements for how this is specified.
 
 ### Supplying certificates which contain the public and private keys
 
@@ -270,6 +271,27 @@ pki:
 `secret.secretName` must match the name of a Kubernetes secret that contains the TLS certificates you wish to add.
 
 `secret.items` must list the TLS certificate files contained in `secret.secretName` you want to add.
+
+If you supply multiple YAML objects then all of the certificates specified will be added into the queue manager trust store.
+
+## Supplying certificates using a configMap
+When supplying a Kubernetes configMap that contains a certificate file with only the public key you must ensure that the configMap contains files that have the extension `.crt`. For example: `ca.crt`.
+
+The format of the YAML objects for `pki.trust` value is as follows:
+
+```YAML
+pki:
+  trust:
+    - name: default
+      configMap:
+        configMapName: helmsecure
+        items:
+          - ca.crt
+```
+
+`configMap.configMapName` must match the name of a Kubernetes configMap that contains the TLS certificates you wish to add.
+
+`configMap.items` must list the TLS certificate files contained in `configMap.configMapName` you want to add.
 
 If you supply multiple YAML objects then all of the certificates specified will be added into the queue manager trust store.
 
