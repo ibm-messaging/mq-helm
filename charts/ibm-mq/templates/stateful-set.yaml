@@ -155,6 +155,17 @@ spec:
               path: {{ . }}
           {{- end }}
       {{- end }}
+      {{- if $source.configMap }}
+      - name: trust{{- $index }}
+        configMap:
+          name: {{ $source.configMap.configMapName }}
+          defaultMode: 420
+          items:
+          {{- range $source.configMap.items }}
+            - key: {{ . }}
+              path: {{ . }}
+          {{- end }}
+      {{- end }}
       {{- end }}
       {{- range $index, $source := .Values.pki.keys }}
       {{- if $source.secret }}
@@ -244,6 +255,18 @@ spec:
           {{- if .Values.queueManager.multiinstance.enable }}
           - name: MQ_MULTI_INSTANCE
             value: "{{ .Values.queueManager.multiinstance.enable | default false }}"
+          {{- end }}
+          {{- /*
+            The following IF statement for the MQ_ENABLE_EMBEDDED_WEB_SERVER may initially look confusing.
+            Originally the helm chart did not set the environment variable. To protect backwards 
+            compatibility  as much as possible we wanted to maintain this behaviour. 
+            The first condition checks it is set to a non-false value, excludes both unset and false. 
+            In our case we want to explicitly set if it is NOT unset, hence the reason for the complex IF
+            statement.
+          */}}
+          {{- if or .Values.web.enable (eq .Values.web.enable false)}}
+          - name: MQ_ENABLE_EMBEDDED_WEB_SERVER
+            value: "{{ .Values.web.enable | default false }}"
           {{- end }}
           {{- if .Values.queueManager.nativeha.enable }}
           - name: MQ_NATIVE_HA_INSTANCE_0_NAME
