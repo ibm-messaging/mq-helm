@@ -1,6 +1,6 @@
 # IBM MQ Helm Chart Sample
 
-**This chart includes the capability to deploy IBM MQ Native HA. This feature is available to customers with entitlement to IBM Cloud Pak for Integration using IBM MQ Advanced conversion entitlement ratios. For details on how to set the correct license annotations please consult [here](#Supplying-licensing-annotations).**
+**This chart includes the capability to deploy IBM MQ Native HA. This feature is available to customers with entitlement to IBM MQ Advanced. For details on how to set the correct license annotations please consult [here](#Supplying-licensing-annotations).**
 
 ## Introduction
 
