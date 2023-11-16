@@ -25,7 +25,7 @@ This Helm chart defaults to deploy the free to use non-warranted IBM MQ Advanced
 
 When deploying IBM MQ for production or non-production use into a Kubernetes environment, you can license based on the resource limits specified on the container by using the IBM License Service. The IBM License Service is deployed into the Kubernetes Cluster and tracks usage based on Kubernetes Pod annotations. How this can be defined within the Helm chart is described [here](charts/ibm-mq/README.md#Supplying-licensing-annotations). To understand how to deploy the IBM License Service please review [here](https://github.com/IBM/ibm-licensing-operator/blob/release-1.8/docs/License_Service_main.md).
 
-**This chart includes the capability to deploy IBM MQ Native HA. When used for production and non-production this feature is available to customers with entitlement to IBM Cloud Pak for Integration using IBM MQ Advanced conversion entitlement ratios.**
+**This chart includes the capability to deploy IBM MQ Native HA. When used for production and non-production this feature is available to customers with entitlement to IBM MQ Advanced.**
 
 ## Copyright
 
