@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 {{- if or (.Values.route.loadBalancer.mqtraffic) (.Values.route.loadBalancer.webconsole) }}
 apiVersion: v1
 kind: Service
@@ -26,6 +25,9 @@ metadata:
   {{- end }}    
 spec:
   type: LoadBalancer
+  {{- if .Values.route.loadBalancer.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.route.loadBalancer.loadBalancerIP }}
+  {{- end }}
   ports:
   {{- if .Values.route.loadBalancer.mqtraffic }}
   - port: 1414
