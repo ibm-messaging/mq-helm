@@ -157,6 +157,7 @@ route:
       # Additional annotations to be added to the load balancer annotations
       annotations: {}
       loadBalancerSourceRanges: []
+      loadBalancerIP: 
     ingress:
       webconsole: 
         enable: false
