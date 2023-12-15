@@ -4,3 +4,7 @@ samples/AWSEKS/deploy/mtlsqm.yaml
 samples/AWSEKS/test/ccdt_generated.json
 samples/AzureAKS/deploy/mtlsqm.yaml
 samples/AzureAKS/test/ccdt_generated.json
+samples/AzureAKSMultiInstance/deploy/mtlsqm.yaml
+samples/AzureAKSMultiInstance/test/ccdt_generated.json
+samples/OpenShiftNativeHA/deploy/mtlsqm.yaml
+samples/OpenShiftNativeHA/test/ccdt_generated.json

@@ -5,6 +5,7 @@ The following includes all the resources to test out the IBM MQ Helm Chart in se
 * Azure
    * [Azure AKS using IBM MQ Native HA](AzureAKS/README.md)
    * [Azure AKS Free Tier using IBM MQ](AzureAKSFreeTier/README.md)
+   * [Azure AKS using IBM MQ Multi-instance](AzureAKSMultiInstance/README.md)
 * [Google Kubernetes Engine using IBM MQ Native HA](GoogleKubernetesEngine/README.md)
 * [IBM Cloud Kubernetes Service (IKS) using IBM MQ Native HA](IBMKubernetesService/README.md)
 * [Rancher RKE2 and OpenEBS using IBM MQ Native HA](RancherRKEOpenEBS/README.md)

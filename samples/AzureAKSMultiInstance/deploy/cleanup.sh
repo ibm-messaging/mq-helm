@@ -1,4 +1,5 @@
-# © Copyright IBM Corporation 2021, 2023
+#! /bin/bash
+# © Copyright IBM Corporation 2023
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,17 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-apiVersion: v2
-name: ibm-mq
-description: IBM MQ queue manager
-version: 8.0.0
-type: application
-appVersion: 9.3.4.0
-kubeVersion: ">=1.18.0-0"
-keywords:
-  - IBM MQ
-  - MQ
-  - amd64
-  - message queue
-  - Integration
-icon: https://raw.githubusercontent.com/IBM/charts/master/logo/ibm-mq-blue-icon.png
+
+export TARGET_NAMESPACE=default
+
+helm delete multiinstance
+kubectl delete secret helmsecure -n $TARGET_NAMESPACE
+kubectl delete configmap helmsecure -n $TARGET_NAMESPACE
+kubectl delete pvc qm-multiinstance-ibm-mq-0 -n $TARGET_NAMESPACE
+kubectl delete pvc qm-multiinstance-ibm-mq-1 -n $TARGET_NAMESPACE
