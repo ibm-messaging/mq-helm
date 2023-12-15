@@ -232,6 +232,23 @@ spec:
           {{- end }}
       {{- end }}
       {{- end }}
+      {{- if .Values.web.manualConfig.configMap.name }}
+      - name: cm-webxml-{{ .Values.web.manualConfig.configMap.name }}
+        configMap:
+          name: {{ .Values.web.manualConfig.configMap.name }}
+          defaultMode: 0644
+          items:
+            - key: mqwebuser.xml
+              path: mqwebuser.xml
+      {{- else if .Values.web.manualConfig.secret.name }}
+      - name: s-webxml-{{ .Values.web.manualConfig.secret.name }}
+        secret:
+          secretName: {{ .Values.web.manualConfig.secret.name }}
+          defaultMode: 0644
+          items:
+            - key: mqwebuser.xml
+              path: mqwebuser.xml
+      {{- end }}
       terminationGracePeriodSeconds: {{.Values.queueManager.terminationGracePeriodSeconds}}
       containers:
         - name: qmgr
@@ -395,6 +412,17 @@ spec:
           {{- if or .Values.persistence.logPVC.enable .Values.queueManager.multiinstance.enable }}
           - mountPath: "/mnt/mqm-log"
             name: {{ $logVolumeClaimName }}
+          {{- end }}
+          {{- if .Values.web.manualConfig.configMap.name }}
+          - name: cm-webxml-{{ .Values.web.manualConfig.configMap.name }}
+            mountPath: "/etc/mqm/web/installations/Installation1/servers/mqweb/mqwebuser.xml"
+            subPath: "mqwebuser.xml"
+            readOnly: true
+          {{- else if .Values.web.manualConfig.secret.name }}
+          - name: s-webxml-{{ .Values.web.manualConfig.secret.name }}
+            mountPath: "/etc/mqm/web/installations/Installation1/servers/mqweb/mqwebuser.xml"
+            subPath: "mqwebuser.xml"
+            readOnly: true
           {{- end }}
           securityContext:
             allowPrivilegeEscalation: false
