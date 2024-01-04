@@ -3,9 +3,9 @@ entries:
   ibm-mq:
   - apiVersion: v2
     appVersion: 9.3.3.0
-    created: "2023-12-10T23:55:03.600534-08:00"
+    created: "2024-01-04T10:41:45.046497-08:00"
     description: IBM MQ queue manager
-    digest: 1f90d964405d8d9a6d109e2b0af6eb73b1258c0f91b86c0ed8b81126648d0632
+    digest: 1a94cacfeaa6285d227434e758c3a73542e7cba9babf0adf0304fbf89fad7148
     icon: https://raw.githubusercontent.com/IBM/charts/master/logo/ibm-mq-blue-icon.png
     keywords:
     - IBM MQ
@@ -19,4 +19,4 @@ entries:
     urls:
     - helm-repo/ibm-mq-0.1.0.tgz
     version: 0.1.0
-generated: "2023-12-10T23:55:03.59955-08:00"
+generated: "2024-01-04T10:41:45.045632-08:00"
