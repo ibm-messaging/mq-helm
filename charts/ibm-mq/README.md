@@ -140,8 +140,8 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `queueManager.terminationGracePeriodSeconds` | Optional duration in seconds the Pod needs to terminate gracefully. Value must be non-negative integer. The value zero indicates delete immediately. The target time in which ending the queue manager is attempted, escalating the phases of application disconnection. Essential queue manager maintenance tasks are interrupted and applications disconnected if necessary. Defaults to 30 seconds. | 30                |
 | `queueManager.updateStrategy`   | Specify the update strategy for the StatefulSet. In the case of Native HA and Multi-instance this should always be onDelete, and therefore this parameter has no affect. For further details regarding Native HA and Multi-instance update process consult the [Updating Native HA and Multi-instance section](#Updating-the-Chart). In the case of a single instance queue manager the default is RollingUpdate. | `RollingUpdate` - single instance, `onDelete` - Native HA  and Multi-instance |
 | `web.enable`    | Whether or not to enable the web server. Default is empty string, which causes the default behaviour of the container. Set to `true` to enable the web console, and `false` to disable. | `` |
-| `web.manualConfig.configMap.name`     | ConfigMap represents a Kubernetes ConfigMap that contains web server XML configuration. The web.manualConfig can only include either the configMap or secret parameter, not both.| `` |
-| `web.manualConfig.secret.name`     | Secret represents a Kubernetes Secret that contains web server XML configuration. The web.manualConfig can only include either the configMap or secret parameter, not both.| `` |
+| `web.manualConfig.configMap.name`     | ConfigMap represents a Kubernetes ConfigMap that contains web server XML configuration. The web.manualConfig can only include either the configMap or secret parameter, not both. For further details regarding how this is specified consult [Supplying custom web console configuration](#Supplying-custom-web-console-configuration)| `` |
+| `web.manualConfig.secret.name`     | Secret represents a Kubernetes Secret that contains web server XML configuration. The web.manualConfig can only include either the configMap or secret parameter, not both. For further details regarding how this is specified consult [Supplying custom web console configuration](#Supplying-custom-web-console-configuration)| `` |
 | `pki.keys`                      | An array of YAML objects that detail Kubernetes secrets containing TLS Certificates with private keys. For further details regarding how this is specified consult [Supplying certificates to be used for TLS](#Supplying-certificates-to-be-used-for-TLS) | `[]` |
 | `pki.trust`                     | An array of YAML objects that detail Kubernetes secrets or configMaps containing TLS Certificates. For further details regarding how this is specified consult [Supplying certificates using secrets to be used for TLS](#Supplying-certificates-to-be-used-for-TLS) and [Supplying certificates using a configMap](#Supplying-certificates-using-a-configMap)   | `[]` |
 | `security.context.fsGroup`      | A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to change the ownership of that volume to be owned by the pod: 1. The owning GID will be the FSGroup 2. The setgid bit is set (new files created in the volume will be owned by FSGroup) 3. The permission bits are OR'd with rw-rw---- If unset, the Kubelet will not modify the ownership and permissions of any volume.          | `nil`                                      |
@@ -359,6 +359,27 @@ qminiSecrets:
 `queueManager.qminiSecrets.name` must match the name of a Kubernetes secret that contains the qm.ini you wish to add.
 
 `queueManager.qminiSecrets.items` must list the qm.ini files contained in ` queueManager.qminiSecrets.name ` you want to add.
+
+##  Supplying custom web console configuration
+The `web.manualConfig` parameter allows you to supply custom web console configuration. This is particularly useful when using a licensed image (non-Developer edition) as the web console is not configured in this environment. The custom configuration can be either stored within a Kubernetes configMap or secret, with two separate parameters available: `web.manualConfig.configMap.name` and `web.manualConfig.secret.name`. For example, if you wanted to set a variable using a configMap you would use the following:
+```YAML
+web:
+  enable: true
+  manualConfig:
+    configMap:
+      name: mywebconfig
+```         
+
+**Sample configMap configuration**
+```YAML
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: mywebconfig
+data:
+  mqwebuser.xml: |-
+    <variable name="myCustomVariable" value="*"/>
+```
 
 ## Supplying licensing annotations
 IBM License Service annotations need to be specified to track the usage and meet the license requirements specified [here](https://www.ibm.com/software/passportadvantage/containerlicenses.html). To do this, metadata annotations need to be specified as shown below:
