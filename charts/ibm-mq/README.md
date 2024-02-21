@@ -168,6 +168,7 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `route.ingress.webconsole.tls.enable `     | If TLS is enabled for the web console ingress.      | `false`                                    |
 | `route.ingress.webconsole.tls.secret `     | The kubernetes secret containing the certificates to be used.      | `false`                                   |
 | `route.loadBalancer.annotations`          | Additional annotations to be added to the load balancer service.                 |`{}`                                      |
+| `route.loadBalancer.loadBalancerIP`          | Single IP address to be explcitly defined as the load balancer's external address. This field, while in the process of being deprecated, still does not have replacements available in all cloud providers, i.e. its an alternative to when the IP spec cannot be set through annotations  |`nil`                  |
 | `route.loadBalancer.loadBalancerSourceRanges`          | This is an array of CIDRs that can be added to a loadbalancer to restrict traffic      |`[]`                  |
 | `route.loadBalancer.mqtraffic `     | Controls if a load balancer service is created for the MQ data traffic.      | `false`                                    |
 | `route.loadBalancer.webconsole`     | Controls if a load balancer service is created for the MQ web console.       | `false`                                    |
