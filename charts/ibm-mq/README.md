@@ -183,6 +183,8 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `metrics.enabled`               | Whether or not to enable an endpoint for Prometheus-compatible metrics.                 | `true`                                     |
 | `affinity.nodeAffinity.matchExpressions` | Force deployments to particular nodes. Corresponds to the Kubernetes specification for [NodeSelectorRequirement](https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#nodeselectorrequirement-v1-core)                  | ``                                     |
 | `tolerations` | Allow pods to be scheduled on nodes with particular taints. Corresponds to the Kubernetes specification for [Torleration](https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core)                 | ``                                     |
+| `topologySpreadConstraints` | Control how pods are spread across the Kubernetes cluster. Corresponds to the Kubernetes specification for [Pod Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/)                 | ``                                     |
+
 
 ## Storage
 
