@@ -126,6 +126,8 @@ spec:
       volumes:
       {{- else if .Values.queueManager.multiinstance.enable }}
       volumes:
+      {{- else if .Values.security.readOnlyRootFilesystem }}
+      volumes:
       {{- end}}
       {{- if .Values.queueManager.multiinstance.enable }}
       - name: {{ $dataVolumeClaimName }}
@@ -249,6 +251,12 @@ spec:
             - key: mqwebuser.xml
               path: mqwebuser.xml
       {{- end }}
+      {{- if .Values.security.readOnlyRootFilesystem }}
+      - name: run-volume
+        emptyDir: {}
+      - name: tmp-volume
+        emptyDir: {}
+      {{- end }}
       terminationGracePeriodSeconds: {{.Values.queueManager.terminationGracePeriodSeconds}}
       containers:
         - name: qmgr
@@ -339,6 +347,8 @@ spec:
           volumeMounts:
           {{- else if .Values.queueManager.multiinstance.enable }}
           volumeMounts:
+          {{- else if .Values.security.readOnlyRootFilesystem }}
+          volumeMounts:
           {{- end}}
           {{- if .Values.queueManager.nativeha.tls }}
           {{- if .Values.queueManager.nativeha.tls.secretName }}
@@ -424,9 +434,15 @@ spec:
             subPath: "mqwebuser.xml"
             readOnly: true
           {{- end }}
+          {{- if .Values.security.readOnlyRootFilesystem }}
+          - mountPath: "/run"
+            name: run-volume
+          - mountPath: "/tmp"
+            name: tmp-volume
+          {{- end }}
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
+            readOnlyRootFilesystem: {{ .Values.security.readOnlyRootFilesystem }}
             {{- if .Values.security.runAsUser }}
             runAsUser: {{ .Values.security.runAsUser }}
             {{- end }}

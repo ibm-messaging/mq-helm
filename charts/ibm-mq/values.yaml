@@ -85,6 +85,7 @@ security:
   # initVolumeAsRoot specifies whether or not storage provider requires root permissions to initialize
   initVolumeAsRoot: false
   runAsUser:
+  readOnlyRootFilesystem: false
 
 # queueManager section specifies settings for the MQ Queue Manager
 queueManager:
