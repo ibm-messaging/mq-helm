@@ -186,6 +186,8 @@ affinity:
   nodeAffinity:
     matchExpressions: []
 
+topologySpreadConstraints: {}  
+
 tolerations: []
 
 web: 
