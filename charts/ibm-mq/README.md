@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This chart deploys a single IBM® MQ server (Queue Manager) built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified using the [9.3.5 branch](https://github.com/ibm-messaging/mq-container/tree/9.3.5). IBM MQ is messaging middleware that simplifies and accelerates the integration of diverse applications and business data across multiple platforms.  It uses message queues, topics and subscriptions to facilitate the exchanges of information and offers a single messaging solution for cloud and on-premises environments.
+This chart deploys a single IBM® MQ server (Queue Manager) built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified using the [9.4.0 branch](https://github.com/ibm-messaging/mq-container/tree/9.4.0). IBM MQ is messaging middleware that simplifies and accelerates the integration of diverse applications and business data across multiple platforms.  It uses message queues, topics and subscriptions to facilitate the exchanges of information and offers a single messaging solution for cloud and on-premises environments.
 
 ## Chart Details
 
@@ -106,7 +106,7 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | ------------------------------- | --------------------------------------------------------------- | ------------------------------------------ |
 | `license`                       | Set to `accept` to accept the terms of the IBM license          | `"not accepted"`                           |
 | `image.repository`              | Image full name including repository                            | `ibmcom/mq`                                |
-| `image.tag`                     | Image tag                                                       | `9.3.5.0-r1`                               |
+| `image.tag`                     | Image tag                                                       | `9.4.0.0-r1`                               |
 | `image.pullPolicy`              | Setting that controls when the kubelet attempts to pull the specified image.                                               | `IfNotPresent`                             |
 | `image.pullSecret`              | An optional list of references to secrets in the same namespace to use for pulling any of the images used by this QueueManager. If specified, these secrets will be passed to individual puller implementations for them to use. For example, in the case of docker, only DockerConfig type secrets are honoured. For more information, see [here](https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod)   | `nil`                                      |
 | `metadata.labels`               | The labels field serves as a pass-through for Pod labels. Users can add any label to this field and have it apply to the Pod.                      | `{}`                                       |
@@ -148,6 +148,7 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `security.context.seccompProfile.type` | Seccomp stands for secure computing mode and when enabled restricts the calls that can be made to the kernel. For more information, see https://kubernetes.io/docs/tutorials/security/seccomp/ | `nil`                                  |
 | `security.context.supplementalGroups` | A list of groups applied to the first process run in each container, in addition to the container's primary GID. If unspecified, no groups will be added to any container. | `nil`                                  |
 | `security.initVolumeAsRoot`     | This affects the securityContext used by the container which initializes the PersistentVolume. Set this to true if you are using a storage provider which requires you to be the root user to access newly provisioned volumes. Setting this to true affects which Security Context Constraints (SCC) object you can use, and the Queue Manager may fail to start if you are not authorized to use an SCC which allows the root user. Defaults to false. For more information, see https://docs.openshift.com/container-platform/latest/authentication/managing-security-context-constraints.html. | `false`                  |
+| `security.readOnlyRootFilesystem` | Enable readonly root filesystem.  | `false` |
 | `security.runAsUser` | Controls which user ID the containers are run with.  | `nil`                               |
 | `livenessProbe.initialDelaySeconds` | Number of seconds after the container has started before the probe is initiated. Defaults to 90 seconds for SingleInstance. Defaults to 0 seconds for a Native HA and Multi-instance deployments. | `90` - single instance, `0` - Native HA and Multi-instance |
 | `livenessProbe.periodSeconds`   | How often (in seconds) to perform the probe.                                       | 10                                         |
@@ -175,7 +176,7 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `route.nodePort.mqtraffic `     | Controls if a node port is created for the MQ data traffic.      | `false`                                    |
 | `route.openShiftRoute.webconsole`     | Controls if an OpenShift Route is created for the MQ web console.       | `false`                                    |
 | `route.openShiftRoute.mqtraffic `     | Controls if an OpenShift Route is created for the MQ data traffic.      | `false`                                    |
-| `log.format`                    | Which log format to use for this container. Use `json`` for JSON-formatted logs from the container. Use `basic` for text-formatted messages. | `basic`                                 |
+| `log.format`                    | Which log format to use for this container. Use `json` for JSON-formatted logs from the container. Use `basic` for text-formatted messages. | `basic`                                 |
 | `log.debug`                     | Enables additional log output for debug purposes. | `false` |
 | `trace.strmqm`                  | Whether to enable MQ trace on the `strmqm` command | `false` |
 | `trace.crtmqdir`                | Whether to enable MQ trace on the `crtmqdir` command | `false` |
@@ -183,6 +184,7 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `metrics.enabled`               | Whether or not to enable an endpoint for Prometheus-compatible metrics.                 | `true`                                     |
 | `affinity.nodeAffinity.matchExpressions` | Force deployments to particular nodes. Corresponds to the Kubernetes specification for [NodeSelectorRequirement](https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#nodeselectorrequirement-v1-core)                  | ``                                     |
 | `tolerations` | Allow pods to be scheduled on nodes with particular taints. Corresponds to the Kubernetes specification for [Torleration](https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core)                 | ``                                     |
+| `topologySpreadConstraints` | Control how pods are spread across the Kubernetes cluster. Corresponds to the Kubernetes specification for [Pod Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/)                 | ``                                     |
 
 ## Storage
 
