@@ -25,6 +25,15 @@ image:
   # pullPolicy is either IfNotPresent or Always (https://kubernetes.io/docs/concepts/containers/images/)
   pullPolicy: IfNotPresent
 
+# User credentials configuration
+secretCredentials:
+  # enabled is whether to configure user credentials via secret or not. (in MQ /run/secrets directory)
+  enable: false
+  # set the admin user password
+  admin: ""
+  # set the app user password
+  app: ""
+
 # metadata allows setting of additional labels and annottations to be added to all resources. Set on helm install using --set metadata.labels.KEY=VALUE,metadata.labels.=VALUE,...
 metadata:
   labels: {}
