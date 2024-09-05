@@ -131,7 +131,7 @@ spec:
       volumes:
       {{- else if .Values.security.readOnlyRootFilesystem }}
       volumes:
-      {{- else if .Values.secretCredentials.enable }}
+      {{- else if .Values.credentials.enable }}
       volumes:
       {{- end}}
       {{- if .Values.queueManager.multiinstance.enable }}
@@ -262,11 +262,11 @@ spec:
       - name: tmp-volume
         emptyDir: {}
       {{- end }}
-      {{- if or .Values.secretCredentials.enable }}
+      {{- if .Values.credentials.enable }}
       - name: mq-credentials
         secret:
           defaultMode: 420
-          secretName: {{ include "ibm-mq.fullname" . }}-credentials
+          secretName: {{ .Values.credentials.secretRef }}
       {{- end }}
       terminationGracePeriodSeconds: {{.Values.queueManager.terminationGracePeriodSeconds}}
       containers:
@@ -360,7 +360,7 @@ spec:
           volumeMounts:
           {{- else if .Values.security.readOnlyRootFilesystem }}
           volumeMounts:
-          {{- else if .Values.secretCredentials.enable }}
+          {{- else if .Values.credentials.enable }}
           volumeMounts:
           {{- end}}
           {{- if .Values.queueManager.nativeha.tls }}
@@ -453,7 +453,7 @@ spec:
           - mountPath: "/tmp"
             name: tmp-volume
           {{- end }}
-          {{- if .Values.secretCredentials.enable }}
+          {{- if .Values.credentials.enable }}
           - name: mq-credentials
             mountPath: "/var/run/secrets"
           {{- end }}
