@@ -28,7 +28,7 @@ image:
 # set passwords for users: "admin" and "app"
 credentials:
   # enabled is whether to configure user credentials via secret or not. (in MQ /run/secrets directory)
-  enable: true
+  enable: false
   # If enabled, provide the name of the secret that contains your user passwords. See adjacent README.md for instructions on how to create this Secret.
   secretRef: "mq-credentials"
 
