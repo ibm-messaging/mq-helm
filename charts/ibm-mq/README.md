@@ -106,9 +106,11 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | ------------------------------- | --------------------------------------------------------------- | ------------------------------------------ |
 | `license`                       | Set to `accept` to accept the terms of the IBM license          | `"not accepted"`                           |
 | `image.repository`              | Image full name including repository                            | `ibmcom/mq`                                |
-| `image.tag`                     | Image tag                                                       | `9.4.0.0-r1`                               |
+| `image.tag`                     | Image tag                                                       | `9.4.0.0-r3`                               |
 | `image.pullPolicy`              | Setting that controls when the kubelet attempts to pull the specified image.                                               | `IfNotPresent`                             |
 | `image.pullSecret`              | An optional list of references to secrets in the same namespace to use for pulling any of the images used by this QueueManager. If specified, these secrets will be passed to individual puller implementations for them to use. For example, in the case of docker, only DockerConfig type secrets are honoured. For more information, see [here](https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod)   | `nil`                                      |
+| `credentials.enable`            | Enable MQ to utilize credentials from a Secret for the default "app" and "admin" users. MQ no longer sets a default password for these users, so it is highly recommended to set your own by creating a Secret.    | `false`      |
+| `credentials.secret`         | Provide the name of a Secret that contains keys "mqAdminPassword" and "mqAppPassword" with passwords as their respective values. This Secret will be mounted into MQ.    | `mq-credentials`      |
 | `metadata.labels`               | The labels field serves as a pass-through for Pod labels. Users can add any label to this field and have it apply to the Pod.                      | `{}`                                       |
 | `metadata.annotations`          | Additional annotations to be added to the Pod annotations. This is required for licensing. Please consult [here](#Supplying-licensing-annotations)                 |`{}`                                      |
 | `persistence.dataPVC.enable`           | By default all data and recovery logs are persisted to a Pod's qmPVC. dataPVC is an optional PersistentVolume which can be enabled using this field. This PersistentVolume is used for MQ persisted data, including configuration, queues and messages. If Multi-instance is enabled this value is set to true.                  | `false`                                     |
@@ -207,6 +209,13 @@ By default, the MQ container output is in a basic human-readable format.  You ca
 ## Connecting to the web console
 
 The MQ image includes the MQ web server.  The web server runs the web console, and the MQ REST APIs.  By default, the MQ server deployed by this chart is accessible via a `ClusterIP` [Service](https://kubernetes.io/docs/concepts/services-networking/service/), which is only accessible from within the Kubernetes cluster.  Optionally an OpenShift Route, Load balancer or Kubernetes NodePort can be configured to connect to the web console from outside of the Kubernetes cluster.
+
+## Setting default passwords
+
+MQ requires a Secret to set passwords for the "admin" and "app" default users. If one would like to set these passwords, create a secret using the below example command.
+```
+kubectl create secret generic mq-credentials --from-literal=mqAdminPassword=YOUR_ADMIN_PASSWORD --from-literal=mqAppPassword=YOUR-APP-PASSWORD
+```
 
 ## Considerations when upgrading the Kubernetes cluster
 
