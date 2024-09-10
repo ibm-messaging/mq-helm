@@ -266,7 +266,7 @@ spec:
       - name: mq-credentials
         secret:
           defaultMode: 420
-          secretName: {{ .Values.credentials.secretRef }}
+          secretName: {{ .Values.credentials.secret }}
       {{- end }}
       terminationGracePeriodSeconds: {{.Values.queueManager.terminationGracePeriodSeconds}}
       containers:
