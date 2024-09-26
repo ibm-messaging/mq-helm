@@ -133,6 +133,10 @@ spec:
       volumes:
       {{- else if .Values.credentials.enable }}
       volumes:
+      {{- else if .Values.web.manualConfig.configMap.name }}
+      volumes:
+      {{- else if .Values.web.manualConfig.secret.name }}
+      volumes:
       {{- end}}
       {{- if .Values.queueManager.multiinstance.enable }}
       - name: {{ $dataVolumeClaimName }}
@@ -361,6 +365,10 @@ spec:
           {{- else if .Values.security.readOnlyRootFilesystem }}
           volumeMounts:
           {{- else if .Values.credentials.enable }}
+          volumeMounts:
+          {{- else if .Values.web.manualConfig.configMap.name }}
+          volumeMounts:
+          {{- else if .Values.web.manualConfig.secret.name }}
           volumeMounts:
           {{- end}}
           {{- if .Values.queueManager.nativeha.tls }}
