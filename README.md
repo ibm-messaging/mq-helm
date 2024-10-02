@@ -8,7 +8,7 @@ Prior to using the Helm chart you will need to install two dependencies:
 
 You will also need a kubernetes environment for testing, this could be a private cloud environment or a deployment on a public cloud such as IBM Cloud, AWS, Azure or Google Cloud.
 
-The repoistory includes two directories:
+The repository includes two directories:
 * [ibm-mq](charts/ibm-mq/README.md): the helm chart for IBM MQ
 * [samples](samples/README.md): provides a number of samples of deployment
 
