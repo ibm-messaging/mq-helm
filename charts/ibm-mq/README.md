@@ -389,7 +389,10 @@ metadata:
   name: mywebconfig
 data:
   mqwebuser.xml: |-
-    <variable name="myCustomVariable" value="*"/>
+    <?xml version="1.0" encoding="UTF-8"?>
+    <server>
+      <variable name="myCustomVariable" value="*"/>
+    </server>
 ```
 
 ## Supplying licensing annotations
