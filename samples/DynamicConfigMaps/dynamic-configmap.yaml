@@ -1,0 +1,7 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: dynamic-configmap
+data:
+  dynamic-configmap.mqsc: |-    
+    DEFINE QLOCAL(TestQ1) REPLACE DESCR('TestQueue') DEFPSIST(YES) MAXMSGL(100000000) MAXDEPTH(1000000)

@@ -1,0 +1,222 @@
+# © Copyright IBM Corporation 2021, 2023
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# license must be set to "accept" to accept the terms of the IBM license
+license: "not accepted"
+
+image:
+  # repository is the container repository to use
+  repository: icr.io/ibm-messaging/mq
+  # tag is the tag to use for the container repository
+  tag: 9.4.0.0-r3
+  # pullSecret is the secret to use when pulling the image from a private registry
+  pullSecret:
+  # pullPolicy is either IfNotPresent or Always (https://kubernetes.io/docs/concepts/containers/images/)
+  pullPolicy: IfNotPresent
+
+# set passwords for users: "admin" and "app"
+credentials:
+  # enabled is whether to configure user credentials via secret or not. (in MQ /run/secrets directory)
+  enable: false
+  # If enabled, provide the name of the secret that contains your user passwords. See adjacent README.md for instructions on how to create this Secret.
+  secret: "mq-credentials"
+
+# metadata allows setting of additional labels and annottations to be added to all resources. Set on helm install using --set metadata.labels.KEY=VALUE,metadata.labels.=VALUE,...
+metadata:
+  labels: {}
+  annotations: {}
+
+# persistence section specifies persistence settings which apply to the whole chart
+persistence:
+
+  # dataPVC section specifies settings for the main Persistent Volume Claim, which is used for data in /var/mqm -> /mnt/mqm
+  dataPVC:
+    # enabled is whether to use this Persistent Volumes or not
+    enable: false
+    # name sets part of the name for this Persistent Volume Claim
+    name: "data"
+    ## size is the minimum size of the Persistent Volume
+    size: 2Gi
+    ## storageClass to use for this PVCs
+    storageClassName: ""
+
+  # logPVC section specifies settings for the main Persistent Volume Claim, which is used for log in /mnt/mqm-log
+  logPVC:
+    # enabled is whether to use this Persistent Volumes or not
+    enable: false
+    # name sets part of the name for this Persistent Volume Claim
+    name: "log"
+    ## size is the minimum size of the Persistent Volume
+    size: 2Gi
+    ## storageClass to use for this PVCs
+    storageClassName: ""
+
+  # dataPVC section specifies settings for the main Persistent Volume Claim, which is used for data in /mnt/mqm-data
+  qmPVC:
+    # enabled is whether to use this Persistent Volumes or not
+    enable: true
+    # name sets part of the name for this Persistent Volume Claim
+    name: "qm"
+    ## size is the minimum size of the Persistent Volume
+    size: 2Gi
+    ## storageClass to use for this PVCs
+    storageClassName: ""
+
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1024Mi
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+security:
+  # context section specifies additional security context settings for the pod
+  context:
+    fsGroup:
+    supplementalGroups: []
+    seccompProfile:
+      type:
+  # initVolumeAsRoot specifies whether or not storage provider requires root permissions to initialize
+  initVolumeAsRoot: false
+  runAsUser:
+  readOnlyRootFilesystem: false
+
+# queueManager section specifies settings for the MQ Queue Manager
+queueManager:
+  # name allows you to specify the name to use for the queue manager.  Defaults to the Helm release name.
+  name:
+  # nativeha specifies whether to run in nativeha mode with an active and two following container instances
+  nativeha:
+    enable: false
+  # multiinstance specifies whether to run in multiinstance mode with an active and one standby container instances
+  multiinstance:
+    enable: false
+  # Allows MQSC snippets to be loaded from static configMaps. These will be loaded into the running instance
+  mqscConfigMaps: 
+    - name: static-configmap
+      items:    
+      - static-configmap.mqsc
+  # Allows MQSC snippets to be loaded from Dynamic ConfigMaps. These will be loaded into the running instance
+  mqscDynamicConfigMaps:
+    - name: dynamic-scripts
+      items:    
+      - start-mqsc.sh
+      - stop-mqsc.sh
+
+    - name: dynamic-configmap
+      items:    
+      - dynamic-configmap.mqsc
+
+  
+  # Allows MQSC snippets to be loaded from secrets. These will be loaded into the running instance
+  mqscSecrets: []
+  # Allows QM INI snippets to be loaded from configMaps. These will be loaded into the running instance
+  qminiConfigMaps: []
+  # Allows QM INI snippets to be loaded from secrets. These will be loaded into the running instance
+  qminiSecrets: []
+  # Enviroment variables to be associated with the queue manager containers
+  envVariables: []
+  # The duration in seconds the Queue Manager needs to terminate gracefully, difference in time between SIGTERM and SIGKILL
+  terminationGracePeriodSeconds: 30
+  # The stateful set updateStrategy policy
+  updateStrategy: RollingUpdate
+# pki is used to supply certificates, that are stored in k8s secrets, for use with the webconsole and queue manager.
+# Must be supplied as an array of yaml objects in the following format:
+# - name: <label to give certificate> (only for pki.keys)
+#   secret:
+#     secretName: <name of Kubernetes secret>
+#     items:
+#       - <certificate files to import> (for example: tls.key, tls.crt, ca.crt)
+pki:
+  keys: []
+  trust: []
+
+# livenessProbe section specifies setting for the MQ liveness probe, which checks for a running Queue Manager
+livenessProbe:
+  # initialDelaySeconds should be raised if your system cannot start the Queue Manager in 60 seconds
+  initialDelaySeconds:
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# readinessProbe section specifies setting for the MQ readiness probe, which checks when the MQ listener is running
+readinessProbe:
+  initialDelaySeconds:
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 1
+
+# readinessProbe section specifies setting for the MQ readiness probe, which checks when the MQ listener is running
+startupProbe:
+  timeoutSeconds: 5
+  periodSeconds: 5
+  successThreshold: 1
+  failureThreshold: 24
+
+# route section specified if any additional Kubernetes services or OpenShift Routes should be defined
+route:
+    nodePort:
+      webconsole: false
+      mqtraffic: false
+    openShiftRoute:
+      webconsole: false
+      mqtraffic: false
+    loadBalancer:
+      webconsole: false
+      mqtraffic: false
+      # Additional annotations to be added to the load balancer annotations
+      annotations: {}
+      loadBalancerSourceRanges: []
+    ingress:
+      webconsole: 
+        enable: false
+        hostname: 
+        path: /
+        tls: 
+          enable: false 
+          secret: 
+      annotations: {}
+
+# log section specifies settings for MQ error logs
+log:
+  format: basic
+  debug: false
+
+# trace can be used to enable MQ trace
+trace:
+  strmqm: false
+  crtmqdir: false
+  crtmqm: false
+
+# metrics section specifies settings for generating queue manager metrics
+metrics:
+  enabled: true
+
+affinity:
+  nodeAffinity:
+    matchExpressions: []
+
+topologySpreadConstraints: {}  
+
+tolerations: []
+
+web: 
+  enabled:
+  manualConfig:
+    configMap:
+      name:
+    secret:
+      name:
