@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This chart deploys a single IBM® MQ server (Queue Manager) built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified using the [9.4.0 branch](https://github.com/ibm-messaging/mq-container/tree/9.4.0). IBM MQ is messaging middleware that simplifies and accelerates the integration of diverse applications and business data across multiple platforms.  It uses message queues, topics and subscriptions to facilitate the exchanges of information and offers a single messaging solution for cloud and on-premises environments.
+This chart deploys a single IBM® MQ server (Queue Manager) built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified using the [9.4.1 branch](https://github.com/ibm-messaging/mq-container/tree/9.4.1). IBM MQ is messaging middleware that simplifies and accelerates the integration of diverse applications and business data across multiple platforms.  It uses message queues, topics and subscriptions to facilitate the exchanges of information and offers a single messaging solution for cloud and on-premises environments.
 
 ## Chart Details
 
@@ -106,7 +106,7 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | ------------------------------- | --------------------------------------------------------------- | ------------------------------------------ |
 | `license`                       | Set to `accept` to accept the terms of the IBM license          | `"not accepted"`                           |
 | `image.repository`              | Image full name including repository                            | `ibmcom/mq`                                |
-| `image.tag`                     | Image tag                                                       | `9.4.0.0-r3`                               |
+| `image.tag`                     | Image tag                                                       | `9.4.1.0-r1`                               |
 | `image.pullPolicy`              | Setting that controls when the kubelet attempts to pull the specified image.                                               | `IfNotPresent`                             |
 | `image.pullSecret`              | An optional list of references to secrets in the same namespace to use for pulling any of the images used by this QueueManager. If specified, these secrets will be passed to individual puller implementations for them to use. For example, in the case of docker, only DockerConfig type secrets are honoured. For more information, see [here](https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod)   | `nil`                                      |
 | `credentials.enable`            | Enable MQ to utilize credentials from a Secret for the default "app" and "admin" users. MQ no longer sets a default password for these users, so it is highly recommended to set your own by creating a Secret.    | `false`      |
