@@ -40,7 +40,7 @@ metadata:
 # persistence section specifies persistence settings which apply to the whole chart
 persistence:
 
-  # dataPVC section specifies settings for the main Persistent Volume Claim, which is used for data in /var/mqm -> /mnt/mqm
+  # dataPVC section specifies settings for the main Persistent Volume Claim, which is used for data in /mnt/mqm-data
   dataPVC:
     # enabled is whether to use this Persistent Volumes or not
     enable: false
@@ -62,7 +62,7 @@ persistence:
     ## storageClass to use for this PVCs
     storageClassName: ""
 
-  # dataPVC section specifies settings for the main Persistent Volume Claim, which is used for data in /mnt/mqm-data
+  # qmPVC section specifies settings for the main Persistent Volume Claim, which is used for the qmgrs meta data in /mnt/mqm
   qmPVC:
     # enabled is whether to use this Persistent Volumes or not
     enable: true
