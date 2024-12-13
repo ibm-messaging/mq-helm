@@ -272,11 +272,14 @@ spec:
           defaultMode: 420
           secretName: {{ .Values.credentials.secret }}
       {{- end }}
+      {{- if .Values.readinessProbe.useLabelPatcher }}
       volumes:
       - name: state
         emptyDir: {}
+      {{- end }}
       terminationGracePeriodSeconds: {{.Values.queueManager.terminationGracePeriodSeconds}}
       containers:
+        {{- if .Values.readinessProbe.useLabelPatcher }}
         - name: state-checker
           command:
             - sh
@@ -312,6 +315,7 @@ spec:
           volumeMounts:
             - mountPath: /etc/mqm/state
               name: state
+        {{- end }}
         - name: qmgr
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -409,8 +413,10 @@ spec:
           {{- else if .Values.web.manualConfig.secret.name }}
           volumeMounts:
           {{- end}}
+          {{- if .Values.readinessProbe.useLabelPatcher }}
           - name: state
             mountPath: /etc/mqm/state
+          {{- end }}
           {{- if .Values.queueManager.nativeha.tls }}
           {{- if .Values.queueManager.nativeha.tls.secretName }}
           - name: ha-tls
@@ -532,12 +538,17 @@ spec:
           # Set readiness probe to determine if the MQ listener is running
           readinessProbe:
             exec:
+              {{- if .Values.readinessProbe.useLabelPatcher }}
               command:
               - sh
               - '-c'
               - >
                 chkmqready;
                 echo $? > /etc/mqm/state/test
+              {{- else }}
+              command:
+              - chkmqready
+              {{- end }}
             {{- if or .Values.queueManager.nativeha.enable .Values.queueManager.multiinstance.enable }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds | default 0 }}
             {{- else }}
