@@ -6,4 +6,11 @@ metadata:
 rules:
 - apiGroups: [""]
   resources: ["pods"]
+  resourceNames: [
+    {{ include "ibm-mq.pod0.name" . }},
+    {{- if .Values.queueManager.nativeha.enable }}
+    {{ include "ibm-mq.pod1.name" . }},
+    {{ include "ibm-mq.pod2.name" . }}
+    {{- end }}
+    ]
   verbs: ["get", "list","patch"]
