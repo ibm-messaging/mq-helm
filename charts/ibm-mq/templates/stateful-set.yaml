@@ -295,20 +295,20 @@ spec:
                 STATE=$(cat /etc/mqm/state/test)
                 if [ $STATE -eq 0 ]; then
                 echo "Queue manager is active"
-                echo "patching the label:"
+                echo "Patching the label"
                 curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
                     --request PATCH \
                     --header "Content-Type: application/json-patch+json" \
                     --data '[ { "op": "replace", "path": "/metadata/labels/role", "value": "master" } ]' \
-                    https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/pods/$HOSTNAME
+                    https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/pods/$HOSTNAME > /dev/null
                 else
                 echo "Queue manager is not active"
-                echo "patching the label:"
+                echo "Patching the label"
                 curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
                     --header "Content-Type: application/json-patch+json" \
                     --request PATCH \
                     --data '[ { "op": "replace", "path": "/metadata/labels/role", "value": "standby" } ]' \
-                    https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/pods/$HOSTNAME
+                    https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/pods/$HOSTNAME > /dev/null
                 fi
               done
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
