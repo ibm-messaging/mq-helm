@@ -135,6 +135,8 @@ spec:
       volumes:
       {{- else if .Values.web.manualConfig.configMap.name }}
       volumes:
+      {{- else if .Values.readinessProbe.useLabelPatcher }}
+      volumes:
       {{- else if .Values.web.manualConfig.secret.name }}
       volumes:
       {{- end}}
@@ -273,7 +275,6 @@ spec:
           secretName: {{ .Values.credentials.secret }}
       {{- end }}
       {{- if .Values.readinessProbe.useLabelPatcher }}
-      volumes:
       - name: state
         emptyDir: {}
       {{- end }}
@@ -412,11 +413,9 @@ spec:
           volumeMounts:
           {{- else if .Values.web.manualConfig.secret.name }}
           volumeMounts:
+          {{- else if .Values.readinessProbe.useLabelPatcher }}
+          volumeMounts:
           {{- end}}
-          {{- if .Values.readinessProbe.useLabelPatcher }}
-          - name: state
-            mountPath: /etc/mqm/state
-          {{- end }}
           {{- if .Values.queueManager.nativeha.tls }}
           {{- if .Values.queueManager.nativeha.tls.secretName }}
           - name: ha-tls
@@ -510,6 +509,10 @@ spec:
           {{- if .Values.credentials.enable }}
           - name: mq-credentials
             mountPath: "/var/run/secrets"
+          {{- end }}
+          {{- if .Values.readinessProbe.useLabelPatcher }}
+          - name: state
+            mountPath: /etc/mqm/state
           {{- end }}
           securityContext:
             allowPrivilegeEscalation: false
