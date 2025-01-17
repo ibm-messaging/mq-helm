@@ -20,6 +20,8 @@ image:
   repository: icr.io/ibm-messaging/mq
   # tag is the tag to use for the container repository
   tag: 9.4.0.0-r3
+  # disableDefaultPullSecret to use when pulling the image from a private registry without a pull secret
+  disableDefaultPullSecret: false
   # pullSecret is the secret to use when pulling the image from a private registry
   pullSecret:
   # pullPolicy is either IfNotPresent or Always (https://kubernetes.io/docs/concepts/containers/images/)
