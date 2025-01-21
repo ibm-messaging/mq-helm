@@ -26,6 +26,9 @@ spec:
     matchLabels:
 {{- include "ibm-mq.selectorLabels" . | nindent 6 }}
   serviceName: qm
+  {{- if and (.Values.queueManager.nativeha.enable) (.Values.queueManager.multiinstance.enable) }}
+    {{- fail "Error: Both nativeha and multiinstance flags should not be enabled simultaneously" }}
+  {{- end }}
   {{- if .Values.queueManager.nativeha.enable }}
   podManagementPolicy: Parallel
   updateStrategy:
