@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: label-patcher
+  name: {{ include "ibm-mq.fullname" ( . ) }}-label-patcher
   labels:
     {{- include "ibm-mq.labels" . | nindent 4 }}
 rules:
