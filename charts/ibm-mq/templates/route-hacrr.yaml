@@ -1,4 +1,5 @@
-# © Copyright IBM Corporation 2021, 2025
+{{- if .Values.route.openShiftRoute.hacrrtraffic }}
+# © Copyright IBM Corporation 2025
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,17 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-apiVersion: v2
-name: ibm-mq
-description: IBM MQ queue manager
-version: 12.0.0
-type: application
-appVersion: 9.4.2.0
-kubeVersion: ">=1.18.0-0"
-keywords:
-  - IBM MQ
-  - MQ
-  - amd64
-  - message queue
-  - Integration
-icon: https://raw.githubusercontent.com/IBM/charts/master/logo/ibm-mq-blue-icon.png
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: "{{ include "ibm-mq.fullname" . }}-nhacrr"
+  labels:
+{{- include "ibm-mq.labels" . | nindent 4 }}
+spec:
+  to:
+    kind: Service
+    name: {{ include "ibm-mq.fullname" . }}
+  port:
+    targetPort: 9415
+  tls:
+    termination: passthrough
+{{ end -}}

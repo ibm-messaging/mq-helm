@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This chart deploys a single IBM® MQ server (Queue Manager) built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified using the [9.4.1 branch](https://github.com/ibm-messaging/mq-container/tree/9.4.1). IBM MQ is messaging middleware that simplifies and accelerates the integration of diverse applications and business data across multiple platforms.  It uses message queues, topics and subscriptions to facilitate the exchanges of information and offers a single messaging solution for cloud and on-premises environments.
+This chart deploys a single IBM® MQ server (Queue Manager) built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified using the [9.4.2 branch](https://github.com/ibm-messaging/mq-container/tree/9.4.2). IBM MQ is messaging middleware that simplifies and accelerates the integration of diverse applications and business data across multiple platforms.  It uses message queues, topics and subscriptions to facilitate the exchanges of information and offers a single messaging solution for cloud and on-premises environments.
 
 ## Chart Details
 
@@ -17,8 +17,10 @@ This chart will do the following:
 * [Optional] Create three [Services](https://kubernetes.io/docs/concepts/services-networking/service/) of type ClusterIP when Native HA is enabled. This provides internal communication between the three Pods of the StatefulSet.
 * [Optional] Create a [Service](https://kubernetes.io/docs/concepts/services-networking/service/) of type NodePort for the MQ data traffic. This is used to ensure that MQ connections outside of the Kubernetes Cluster have a consistent entry point, regardless of where the Queue Manager is actually running.
 * [Optional] Create a [Service](https://kubernetes.io/docs/concepts/services-networking/service/) of type NodePort for the MQ web console. This is used to ensure that connections to the Web Console from outside of the Kubernetes Cluster have a consistent entry point, regardless of where the Queue Manager is actually running.
+* [Optional] Create a [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) for the Native HA Cross Region Replication (CRR) Group definitions. This is used for configuration of the Native HA CRR group, which includes whether its role is Live or Recovery, its CRR group name, and the replication address of the remotes.
 * [Optional] Create an [OpenShift Route](https://docs.openshift.com/container-platform/4.8/networking/routes/route-configuration.html) for the MQ web console. This is used when accessing the Web Console from outside of an OpenShift Cluster.
 * [Optional] Create an [OpenShift Route](https://docs.openshift.com/container-platform/4.8/networking/routes/route-configuration.html) for the MQ data traffic. This is used when accessing the MQ data port from outside of an OpenShift Cluster.
+* [Optional] Create an [OpenShift Route](https://docs.openshift.com/container-platform/4.8/networking/routes/route-configuration.html) for the Native HA CRR data traffic. This is used when accessing the Native HA CRR data replication port from outside of an OpenShift Cluster.
 * [Optional] Create a metrics [Service](https://kubernetes.io/docs/concepts/services-networking/service/) for accessing Queue Manager metrics.
 
 ## Prerequisites
@@ -106,7 +108,7 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | ------------------------------- | --------------------------------------------------------------- | ------------------------------------------ |
 | `license`                       | Set to `accept` to accept the terms of the IBM license          | `"not accepted"`                           |
 | `image.repository`              | Image full name including repository                            | `ibmcom/mq`                                |
-| `image.tag`                     | Image tag                                                       | `9.4.1.0-r1`                               |
+| `image.tag`                     | Image tag                                                       | `9.4.2.0-r1`                               |
 | `image.pullPolicy`              | Setting that controls when the kubelet attempts to pull the specified image.                                               | `IfNotPresent`                             |
 | `image.pullSecret`              | An optional list of references to secrets in the same namespace to use for pulling any of the images used by this QueueManager. If specified, these secrets will be passed to individual puller implementations for them to use. For example, in the case of docker, only DockerConfig type secrets are honoured. For more information, see [here](https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod)   | `nil`                                      |
 | `credentials.enable`            | Enable MQ to utilize credentials from a Secret for the default "app" and "admin" users. MQ no longer sets a default password for these users, so it is highly recommended to set your own by creating a Secret.    | `false`      |
@@ -134,6 +136,8 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `queueManager.nativeha.enable`    | Whether to run in Native HA mode, with three Pods (one active and two replica Pods). Native HA is available on x86, Linux on IBM Power and Linux on IBM Z. | `false`                     |
 | `queueManager.nativeha.tls.cipherSpec`    | Optional TLS settings for configuring secure communication between Native HA replicas. The name of the CipherSpec for Native HA TLS | `"ANY_TLS12_OR_HIGHER"`                     |
 | `queueManager.nativeha.tls.secretName`    | Optional TLS settings for configuring secure communication between Native HA replicas. The name of the Kubernetes secret. | `""`                     |
+| `queueManager.nativeha.nativehaGroup`     | To deploy a Native HA CRR group, this value must match one of the `nativehaGroupId` identifier values in one of the `nativehaGroups` array configurations.    | `""`    |
+| `queueManager.nativeha.nativehaGroups`    | An array of YAML objects that detail a Native HA CRR group configuration. The objects within are `nativehaGroupId`, `name`, `role`, `addresss`, a `tls` array (similar to the queueManager.nativeha.tls.* structure), and a `crrtls` array (to define the encryption from CRR group to CRR group) | `[]` |
 | `queueManager.mqscConfigMaps` | An array of YAML objects that detail the Kubernetes configMap items that should be added.  For further details regarding how this is specified consult [Supplying custom mqsc using a configMap](#Supplying-custom-mqsc-using-a-configMap)  | `[]` |
 | `queueManager.mqscSecrets` | An array of YAML objects that detail the Kubernetes secrets items that should be added. For further details regarding how this is specified consult [Supplying custom mqsc using a secret](#Supplying-custom-mqsc-using-a-secret)  | `[]` |
 | `queueManager.qminiConfigMaps` | An array of YAML objects that detail the Kubernetes configMap items that should be added. For further details regarding how this is specified consult [Supplying QM INI using a configMap](#Supplying-QM-INI-using-a-configMap)  | `[]` |
@@ -175,9 +179,11 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `route.loadBalancer.mqtraffic `     | Controls if a load balancer service is created for the MQ data traffic.      | `false`                                    |
 | `route.loadBalancer.webconsole`     | Controls if a load balancer service is created for the MQ web console.       | `false`                                    |
 | `route.nodePort.webconsole`     | Controls if a node port is created for the MQ web console.       | `false`                                    |
-| `route.nodePort.mqtraffic `     | Controls if a node port is created for the MQ data traffic.      | `false`                                    |
+| `route.nodePort.mqtraffic`      | Controls if a node port is created for the MQ data traffic.      | `false`                                    |
+| `route.nodePort.hacrrtraffic`   | Controls if a node port is created for the Native HA CRR data traffic.      | `false`                                    |
 | `route.openShiftRoute.webconsole`     | Controls if an OpenShift Route is created for the MQ web console.       | `false`                                    |
-| `route.openShiftRoute.mqtraffic `     | Controls if an OpenShift Route is created for the MQ data traffic.      | `false`                                    |
+| `route.openShiftRoute.mqtraffic`      | Controls if an OpenShift Route is created for the MQ data traffic.      | `false`                                    |
+| `route.openShiftRoute.hacrrtraffic`   | Controls if an OpenShift Route is created for the Native HA CRR data traffic.      | `false`                                    |
 | `log.format`                    | Which log format to use for this container. Use `json` for JSON-formatted logs from the container. Use `basic` for text-formatted messages. | `basic`                                 |
 | `log.debug`                     | Enables additional log output for debug purposes. | `false` |
 | `trace.strmqm`                  | Whether to enable MQ trace on the `strmqm` command | `false` |
@@ -185,7 +191,7 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `trace.crtmqm`                  | Whether to enable MQ trace on `crtmqm` command | `false` |
 | `metrics.enabled`               | Whether or not to enable an endpoint for Prometheus-compatible metrics.                 | `true`                                     |
 | `affinity.nodeAffinity.matchExpressions` | Force deployments to particular nodes. Corresponds to the Kubernetes specification for [NodeSelectorRequirement](https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#nodeselectorrequirement-v1-core)                  | ``                                     |
-| `tolerations` | Allow pods to be scheduled on nodes with particular taints. Corresponds to the Kubernetes specification for [Torleration](https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core)                 | ``                                     |
+| `tolerations` | Allow pods to be scheduled on nodes with particular taints. Corresponds to the Kubernetes specification for [Toleration](https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core)                 | ``                                     |
 | `topologySpreadConstraints` | Control how pods are spread across the Kubernetes cluster. Corresponds to the Kubernetes specification for [Pod Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/)                 | ``                                     |
 
 ## Storage
@@ -266,7 +272,7 @@ pki:
 
 If you supply multiple YAML objects then the queue manager will use the first object chosen by the label name alphabetically. For example if you supply the following labels: `alabel`, `blabel` and `clabel`. The queue manager will use the certificate with the label `alabel` for its identity. In this queue manager this can be changed by running the MQSC command: `ALTER QMGR CERTLABL('<new label>')`.
 
-### Supplying certficates which contain only the public key
+### Supplying certificates which contain only the public key
 When supplying a Kubernetes secret that contains a certificate file with only the public key you must ensure that the secret contains files that have the extension `.crt`. For example: `app.crt`.
 
 The format of the YAML objects for `pki.trust` value is as follows:
@@ -410,6 +416,45 @@ metadata:
 ```
 Depending on the deployment scenario different annotations should be used, for a complete list please consult the IBM MQ Knowledge Center [here](https://www.ibm.com/docs/en/ibm-mq/9.2?topic=sbyomcic-license-annotations-when-building-your-own-mq-container-image#ctr_license_annot__annot8)
 
+
+## Sample Native HA CRR configurations for Live and Recovery
+The following sample will deploy the Native HA CRR Recovery group, and then the Native HA CRR Live group.
+
+The [OpenShiftNativeHACRR](../../samples/OpenShiftNativeHACRR/README.md) sample uses the following YAML configuration to deploy the Recovery group, and then the Live group. After the Recovery group is deployed using the following YAML, its route address can be retrieved and populated as the `address:` value within the Recovery's group's definition, then the `nativehaGroup` can be changed to `qm-live` so that the Live group can be deployed.
+```YAML
+queueManager:
+  nativeha:
+    enable: true
+    nativehaGroup: qm-recovery
+    nativehaGroups:
+    - nativehaGroupId: qm-live
+      name: alpha
+      role: Live
+      address:
+      tls: 
+        secretName: helmsecure
+      crrtls:
+        key:
+          secretName: nha-crr-secret-live
+        trust:
+        - secretName: nha-crr-secret-recovery
+          items:
+          - key: tls.crt
+    - nativehaGroupId: qm-recovery
+      name: beta
+      role: Recovery
+      address: 
+      tls:
+        secretName: helmsecure
+      crrtls:
+        key:
+          secretName: nha-crr-secret-recovery
+        trust:
+        - secretName: nha-crr-secret-live
+          items:
+          - key: tls.crt
+```
+
 ## Copyright
 
-© Copyright IBM Corporation 2021
+© Copyright IBM Corporation 2021,2025

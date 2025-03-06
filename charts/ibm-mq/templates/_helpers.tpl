@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2021
+# © Copyright IBM Corporation 2021,2025
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -171,5 +171,41 @@ Additional additional labels
 {{- define "ibm-mq.additionalLabels" -}}
 {{- range $key, $value := .Values.metadata.labels }}
 {{ $key }}: {{ $value | quote }}
+{{- end }}
+{{- end }}
+
+{{- define "ibm-mq.crr.localGroupsIndex" -}}
+{{- $CRR_GROUP := .Values.queueManager.nativeha.nativehaGroup }}
+{{- if not (quote $CRR_GROUP | empty) }}
+  {{- range $index, $srcGroups := .Values.queueManager.nativeha.nativehaGroups }}
+    {{- if eq $srcGroups.nativehaGroupId $CRR_GROUP }}
+{{- $index }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "ibm-mq.crr.isLocalARecoveryGroup" -}}
+{{- $CRR_GROUP := .Values.queueManager.nativeha.nativehaGroup }}
+{{- if not (quote $CRR_GROUP | empty) }}
+  {{- range $srcGroups := .Values.queueManager.nativeha.nativehaGroups }}
+    {{- if (eq $srcGroups.nativehaGroupId $CRR_GROUP) }}
+      {{- if (eq $srcGroups.role "Recovery") }}true{{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "ibm-mq.crr.remoteGroupsIndex" -}}
+{{- $CRR_GROUP := .Values.queueManager.nativeha.nativehaGroup }}
+{{- $count := 0 }}
+{{- if not (quote $CRR_GROUP | empty) }}
+ {{- range $index, $srcGroups := .Values.queueManager.nativeha.nativehaGroups }}
+  {{- if not (eq $srcGroups.nativehaGroupId $CRR_GROUP) }}
+   {{- if gt (int $count) 0 }};{{ end}}
+{{- $index }}
+   {{- $count = add1 $count }}
+  {{- end }}
+ {{- end }}
 {{- end }}
 {{- end }}

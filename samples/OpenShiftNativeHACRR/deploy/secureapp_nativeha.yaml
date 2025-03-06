@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2021, 2023
+# © Copyright IBM Corporation 2021, 2025
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,16 +11,40 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-image:
-  repository: cp.icr.io/cp/ibm-mqadvanced-server
-  tag: 9.4.2.0-r1-amd64
-  pullSecret: ibm-entitlement-key
 license: accept
 queueManager:
   nativeha:
     enable: true
-    tls:
-      secretName: helmsecure
+    nativehaGroup: 
+    nativehaGroups:
+    - nativehaGroupId: qm-live
+      name: alpha
+      # role can be Live or Recovery
+      role: Live
+      tls: 
+        secretName: helmsecure
+      # definition TLS for the communication between CRR groups
+      crrtls:
+        key:
+          secretName: nha-crr-secret-live
+        trust:
+        - secretName: nha-crr-secret-recovery
+          items:
+          - key: tls.crt
+    - nativehaGroupId: qm-recovery
+      name: beta
+      role: Recovery
+      address: 
+      tls:
+        secretName: helmsecure
+      # definition TLS for the communication between CRR groups
+      crrtls:
+        key:
+          secretName: nha-crr-secret-recovery
+        trust:
+        - secretName: nha-crr-secret-live
+          items:
+          - key: tls.crt
   mqscConfigMaps:
     - name: helmsecure
       items:
@@ -48,14 +72,12 @@ pki:
           - app.crt
 metadata:
   annotations:
-    productName: "IBM MQ Advanced for Non-Production with CP4I License"
-    productID: "21dfe9a0f00f444f888756d835334909"
-    productChargedContainers: "qmgr"
-    productMetric: "VIRTUAL_PROCESSOR_CORE"
-    productCloudpakRatio: "4:1"
-    cloudpakName: "IBM Cloud Pak for Integration"
-    cloudpakId: "c8b82d189e7545f0892db9ef2731b90d"
+    productName: "IBM MQ Advanced for Developers"
+    productID: "2f886a3eefbe4ccb89b2adb97c78b9cb"
+    productChargedContainers: ""
+    productMetric: "FREE"
 route:
   openShiftRoute:
     webconsole: true
     mqtraffic: true
+    hacrrtraffic: true

@@ -27,3 +27,9 @@ Get the load balancer exposed MQ queueManager URL by running these commands:
 
 The MQ connection information for clients inside the cluster is as follows:
   {{ include "ibm-mq.fullname" . }}:1414
+
+{{- if and .Values.route.openShiftRoute.hacrrtraffic .Values.queueManager.nativeha.nativehaGroup }}
+Get the NativeHA CRR Traffic URL to configure the replication address, by running these commands:
+  export HACRR_ROUTE=$(kubectl get route {{ include "ibm-mq.fullname" . }}-nhacrr -n {{ .Release.Namespace }} -o jsonpath="{.spec.host}")
+  echo $HACRR_ROUTE\(443\)
+{{ end -}}

@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2021
+# © Copyright IBM Corporation 2021,2025
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,9 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 {{ $statefulSetName := include "ibm-mq.fullname" . }}
+{{- $configMapName := include "ibm-mq.fullname" . }}
 {{ $dataVolumeClaimName := include "ibm-mq.pvcDataName" . }}
 {{ $qmVolumeClaimName := include "ibm-mq.pvcQMName" . }}
 {{ $logVolumeClaimName  := include "ibm-mq.pvcLogName" . }}
+{{- $crrLocalGroupsIndex := include "ibm-mq.crr.localGroupsIndex" . }}
+{{- $crrLocalGroupIsRecovery := include "ibm-mq.crr.isLocalARecoveryGroup" . }}
+{{- $crrRemoteGroupsIndexes := include "ibm-mq.crr.remoteGroupsIndex" . | split ";" }}
+{{- $crrRemoteGroupsDeclared := not (eq $crrRemoteGroupsIndexes._0 "") }}
+{{- $crrDeclared := or $crrLocalGroupIsRecovery (and (not (eq $crrLocalGroupsIndex "")) $crrRemoteGroupsDeclared) }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -121,13 +127,13 @@ spec:
           - {{ $group -}}
         {{ end }}
       {{- if .Values.queueManager.nativeha.tls }}
-      {{- if .Values.queueManager.nativeha.tls.secretName }}
       volumes:
       {{- else if or (or (or (or (or (.Values.pki.trust) (.Values.pki.keys)) (.Values.queueManager.mqscConfigMaps)) (.Values.queueManager.qminiConfigMaps)) (.Values.queueManager.mqscSecrets)) (.Values.queueManager.qminiSecrets) }}
       volumes:
       {{- else if .Values.queueManager.multiinstance.enable }}
       volumes:
-      {{- end }}
+      {{- else if $crrDeclared }}
+      volumes:
       {{- else if or (or (or (or (or (.Values.pki.trust) (.Values.pki.keys)) (.Values.queueManager.mqscConfigMaps)) (.Values.queueManager.qminiConfigMaps)) (.Values.queueManager.mqscSecrets)) (.Values.queueManager.qminiSecrets) }}
       volumes:
       {{- else if .Values.queueManager.multiinstance.enable }}
@@ -149,13 +155,61 @@ spec:
         persistentVolumeClaim:
           claimName: {{ $logVolumeClaimName }}-{{ $statefulSetName }}
       {{- end}}
-      {{- if .Values.queueManager.nativeha.tls }}
-      {{- if .Values.queueManager.nativeha.tls.secretName }}
+      {{- if and .Values.queueManager.nativeha.enable $crrDeclared }}
+      - name: cm-{{ $configMapName }}-nativeha
+        configMap:
+          name: {{ $configMapName }}-nativeha-configmap
+          defaultMode: 420
+          items:
+          - key: cm-nativeha-ini
+            path: 20-nativeha.ini
+          - key: cm-nativeha-crr-ini
+            path: 20-nativeha-crr.ini
+      {{- end }}
+      {{- $HATLSSecretName := "" }}
+      {{- if and (hasKey .Values.queueManager.nativeha "tls") (hasKey .Values.queueManager.nativeha.tls "secretName") }}
+        {{- $HATLSSecretName = .Values.queueManager.nativeha.tls.secretName }}
+      {{- end }}
+      {{- if $crrDeclared }}
+        {{- with index .Values.queueManager.nativeha.nativehaGroups ($crrLocalGroupsIndex | int) }}
+          {{- if and (hasKey . "tls") (hasKey .tls "secretName") }}
+            {{- $HATLSSecretName = .tls.secretName }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if not (eq $HATLSSecretName "") }}
       - name: ha-tls
         secret:
-          secretName: {{ .Values.queueManager.nativeha.tls.secretName }}
+          secretName: {{ $HATLSSecretName }}
           defaultMode: 288
       {{- end }}
+      {{- if $crrDeclared }}
+        {{- with index .Values.queueManager.nativeha.nativehaGroups ($crrLocalGroupsIndex | int) }}
+        {{- if (hasKey . "crrtls") }}
+         {{- if and (hasKey .crrtls "key") (hasKey .crrtls.key "secretName") }}
+      - name: groupha-tls
+        secret:
+          secretName: {{ .crrtls.key.secretName }}
+          defaultMode: 288
+         {{- end }}
+         {{- if hasKey .crrtls "trust" }}
+          {{- range $count, $source := .crrtls.trust }}
+      - name: groupha-tls-trust-{{- $count }}
+        secret:
+          secretName: {{ $source.secretName }}
+          defaultMode: 420
+           {{- if hasKey $source "items" }}
+          items:
+            {{- range $countKeys, $sourceItem := .items }}
+            - key: {{ $sourceItem.key }}
+            {{- $crrTrustPath := coalesce $sourceItem.path (printf "%s-%s-%d-%s" "native-crr" $source.secretName $countKeys $sourceItem.key) }}
+              path: {{ $crrTrustPath }}
+            {{- end }}
+           {{- end }}
+          {{- end }}
+         {{- end }}
+        {{- end }}
+        {{- end }}
       {{- end }}
       {{- range $index, $source := .Values.pki.trust }}
       {{- if $source.secret }}
@@ -311,7 +365,7 @@ spec:
           - name: MQ_ENABLE_EMBEDDED_WEB_SERVER
             value: "{{ .Values.web.enable | default false }}"
           {{- end }}
-          {{- if .Values.queueManager.nativeha.enable }}
+          {{- if and .Values.queueManager.nativeha.enable (not $crrDeclared) }}
           - name: MQ_NATIVE_HA_INSTANCE_0_NAME
             value: {{ include "ibm-mq.pod0.name" . }}
           - name: MQ_NATIVE_HA_INSTANCE_0_REPLICATION_ADDRESS
@@ -324,6 +378,12 @@ spec:
             value: {{ include "ibm-mq.pod2.name" . }}
           - name: MQ_NATIVE_HA_INSTANCE_2_REPLICATION_ADDRESS
             value: {{ include "ibm-mq.pod2.service" . }}(9414)
+            {{- if .Values.queueManager.nativeha.tls }}
+          - name: MQ_NATIVE_HA_TLS
+            value: "true"
+          - name: MQ_NATIVE_HA_CIPHERSPEC
+            value: "{{ .Values.queueManager.nativeha.tls.cipherSpec | default "ANY_TLS12_OR_HIGHER"}}"
+            {{- end }}
           {{- end }}
           - name: MQ_LOGGING_CONSOLE_FORMAT
             value: {{ .Values.log.format | default "basic" }}
@@ -346,21 +406,13 @@ spec:
             value: "{{ $source.value }}"
           {{- end }}
           {{- if .Values.queueManager.nativeha.tls }}
-          {{- if (.Values.queueManager.nativeha.tls.secretName) }}
-          - name: MQ_NATIVE_HA_TLS
-            value: "true"
-          - name: MQ_NATIVE_HA_CIPHERSPEC
-            value: "{{ .Values.queueManager.nativeha.tls.cipherSpec | default "ANY_TLS12_OR_HIGHER"}}"
-          {{- end }}
-          {{- end }}
-          {{- if .Values.queueManager.nativeha.tls }}
-          {{- if .Values.queueManager.nativeha.tls.secretName }}
           volumeMounts:
           {{- else if or (or (or (or (or (or (.Values.pki.trust) (.Values.pki.keys)) (.Values.queueManager.mqscConfigMaps)) (.Values.queueManager.qminiConfigMaps)) (.Values.queueManager.mqscSecrets)) (.Values.queueManager.qminiSecrets)) ((.Values.persistence.qmPVC.enable))}}
           volumeMounts:
           {{- else if .Values.queueManager.multiinstance.enable }}
           volumeMounts:
-          {{- end }}
+          {{- else if $crrDeclared }}
+          volumeMounts:
           {{- else if or (or (or (or (or (or (.Values.pki.trust) (.Values.pki.keys)) (.Values.queueManager.mqscConfigMaps)) (.Values.queueManager.qminiConfigMaps)) (.Values.queueManager.mqscSecrets)) (.Values.queueManager.qminiSecrets)) ((.Values.persistence.qmPVC.enable))}}
           volumeMounts:
           {{- else if .Values.queueManager.multiinstance.enable }}
@@ -374,12 +426,10 @@ spec:
           {{- else if .Values.web.manualConfig.secret.name }}
           volumeMounts:
           {{- end}}
-          {{- if .Values.queueManager.nativeha.tls }}
-          {{- if .Values.queueManager.nativeha.tls.secretName }}
+          {{- if not (eq $HATLSSecretName "") }}
           - name: ha-tls
             readOnly: true
             mountPath: /etc/mqm/ha/pki/keys/ha
-          {{- end }}
           {{- end }}
           {{- if .Values.pki.trust }}
           {{- range $index, $source := .Values.pki.trust }}
@@ -446,6 +496,34 @@ spec:
           {{- if or .Values.persistence.logPVC.enable .Values.queueManager.multiinstance.enable }}
           - mountPath: "/mnt/mqm-log"
             name: {{ $logVolumeClaimName }}
+          {{- end }}
+          {{- if $crrDeclared }}
+            {{- if .Values.queueManager.nativeha.enable }}
+          - mountPath: /etc/mqm/20-nativeha.ini
+            name: cm-{{ $configMapName }}-nativeha
+            readOnly: true
+            subPath: 20-nativeha.ini
+            {{- end }}
+          - mountPath: /etc/mqm/20-nativeha-crr.ini
+            name: cm-{{ $configMapName }}-nativeha
+            readOnly: true
+            subPath: 20-nativeha-crr.ini
+            {{- with index .Values.queueManager.nativeha.nativehaGroups ($crrLocalGroupsIndex | int) }}
+            {{- if hasKey . "crrtls" }}
+             {{- if hasKey .crrtls "key" }}
+          - mountPath: /etc/mqm/groupha/pki/keys/ha-group
+            name: groupha-tls
+            readOnly: true
+             {{- end }}
+             {{- if hasKey .crrtls "trust" }}
+              {{- range $count, $source := .crrtls.trust }}
+          - name: groupha-tls-trust-{{- $count }}
+            mountPath: /etc/mqm/groupha/pki/trust/{{- $count }}
+            readOnly: true
+              {{- end }}
+             {{- end }}
+            {{- end }}
+            {{- end }}
           {{- end }}
           {{- if .Values.web.manualConfig.configMap.name }}
           - name: cm-webxml-{{ .Values.web.manualConfig.configMap.name }}
