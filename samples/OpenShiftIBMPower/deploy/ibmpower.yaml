@@ -14,7 +14,7 @@
 license: accept
 image:
   repository: cp.icr.io/cp/ibm-mqadvanced-server
-  tag: 9.4.1.0-r1-ppc64le
+  tag: 9.4.2.0-r1-ppc64le
   pullSecret: ibm-entitlement-key
 queueManager:
   mqscConfigMaps:
