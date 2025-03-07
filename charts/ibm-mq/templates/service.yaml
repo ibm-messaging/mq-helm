@@ -30,3 +30,6 @@ spec:
 {{- end }}
   selector:
 {{- include "ibm-mq.selectorLabels" . | nindent 4 }}
+    {{- if .Values.readinessProbe.useLabelPatcher }}
+    role: master
+    {{- end }}

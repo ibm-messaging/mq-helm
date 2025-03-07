@@ -139,6 +139,7 @@ livenessProbe:
 
 # readinessProbe section specifies setting for the MQ readiness probe, which checks when the MQ listener is running
 readinessProbe:
+  useLabelPatcher: false
   initialDelaySeconds:
   periodSeconds: 5
   timeoutSeconds: 3
