@@ -30,7 +30,7 @@ spec:
     service:
       name: {{ include "ibm-mq.fullname" . }}
       port:
-        number: 9443
+        name: console-https
   ingressClassName: nginx
   rules:
   {{- if .Values.route.ingress.webconsole.hostname }}
@@ -50,7 +50,7 @@ spec:
               service:
                 name: {{ include "ibm-mq.fullname" . }}
                 port:
-                  number: 9443
+                  name: console-https
   {{- if .Values.route.ingress.webconsole.tls.enable }}
   tls:
     {{- if .Values.route.ingress.webconsole.hostname}}
