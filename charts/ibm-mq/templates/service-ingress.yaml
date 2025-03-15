@@ -37,9 +37,9 @@ spec:
     - host: {{ .Values.route.ingress.webconsole.hostname }}
       http:
   {{- else }}
-      - http:
+    - http:
   {{- end }}
-          paths:
+        paths:
   {{- if .Values.route.ingress.webconsole.path }}
           - path: {{ .Values.route.ingress.webconsole.path }}
   {{- else }}
@@ -53,10 +53,10 @@ spec:
                   name: console-https
   {{- if .Values.route.ingress.webconsole.tls.enable }}
   tls:
-    {{- if .Values.route.ingress.webconsole.hostname}}
+    {{- if .Values.route.ingress.webconsole.hostname }}
     - hosts:
-      - {{ .Values.route.ingress.webconsole.hostname }}
-      {{- if .Values.route.ingress.webconsole.tls.secret}}
+        - {{ .Values.route.ingress.webconsole.hostname }}
+      {{- if .Values.route.ingress.webconsole.tls.secret }}
       secretName: {{ .Values.route.ingress.webconsole.tls.secret }}
       {{- end }}
     {{- else }}
