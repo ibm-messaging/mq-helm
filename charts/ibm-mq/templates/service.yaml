@@ -24,7 +24,7 @@ spec:
     name: console-https
   - port: 1414
     name: qmgr
-{{- if .Values.route.openShiftRoute.hacrrtraffic }}
+{{- if .Values.queueManager.nativeha.nativehaGroup }}
   - port: 9415
     name: ha-crr
 {{- end }}
