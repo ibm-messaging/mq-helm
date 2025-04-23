@@ -322,6 +322,18 @@ spec:
         emptyDir: {}
       - name: tmp-volume
         emptyDir: {}
+      {{- if not (or .Values.persistence.qmPVC.enable .Values.queueManager.multiinstance.enable) }}
+      - name: mqm-volume
+        emptyDir: {}
+      {{- end }}
+      {{- if not (or .Values.persistence.dataPVC.enable .Values.queueManager.multiinstance.enable) }}
+      - name: mqm-data-volume
+        emptyDir: {}
+      {{- end }}
+      {{- if not (or .Values.persistence.logPVC.enable .Values.queueManager.multiinstance.enable) }}
+      - name: mqm-log-volume
+        emptyDir: {}
+      {{- end }}
       {{- end }}
       {{- if .Values.credentials.enable }}
       - name: mq-credentials
@@ -488,14 +500,23 @@ spec:
           {{- if or .Values.persistence.qmPVC.enable .Values.queueManager.multiinstance.enable }}
           - mountPath: "/mnt/mqm"
             name: {{ $qmVolumeClaimName }}
+          {{- else if .Values.security.readOnlyRootFilesystem }}
+          - mountPath: "/mnt/mqm"
+            name: mqm-volume
           {{- end }}
           {{- if or .Values.persistence.dataPVC.enable .Values.queueManager.multiinstance.enable }}
           - mountPath: "/mnt/mqm-data"
             name: {{ $dataVolumeClaimName }}
+          {{- else if .Values.security.readOnlyRootFilesystem }}
+          - mountPath: "/mnt/mqm-data"
+            name: mqm-data-volume
           {{- end }}
           {{- if or .Values.persistence.logPVC.enable .Values.queueManager.multiinstance.enable }}
           - mountPath: "/mnt/mqm-log"
             name: {{ $logVolumeClaimName }}
+          {{- else if .Values.security.readOnlyRootFilesystem }}
+          - mountPath: "/mnt/mqm-log"
+            name: mqm-log-volume
           {{- end }}
           {{- if $crrDeclared }}
             {{- if .Values.queueManager.nativeha.enable }}
