@@ -33,3 +33,9 @@ Get the NativeHA CRR Traffic URL to configure the replication address, by runnin
   export HACRR_ROUTE=$(kubectl get route {{ include "ibm-mq.fullname" . }}-nhacrr -n {{ .Release.Namespace }} -o jsonpath="{.spec.host}")
   echo $HACRR_ROUTE\(443\)
 {{ end -}}
+
+{{- if and .Values.route.loadBalancer.hacrrtraffic .Values.queueManager.nativeha.nativehaGroup }}
+Get the NativeHA CRR Traffic URL to configure the replication address, by running these commands:
+  export HACRR_ADDRESS=$(kubectl get services {{ include "ibm-mq.fullname" . }}-loadbalancer-hacrr -n {{ .Release.Namespace }} -o jsonpath="{..hostname}")$(kubectl get services {{ include "ibm-mq.fullname" . }}-loadbalancer-hacrr -n {{ .Release.Namespace }} -o jsonpath="{..ip}")
+  echo $HACRR_ADDRESS\(9415\)
+{{ end -}}

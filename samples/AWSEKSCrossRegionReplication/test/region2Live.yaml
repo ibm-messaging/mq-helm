@@ -1,0 +1,93 @@
+# © Copyright IBM Corporation 2025
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+license: accept
+queueManager:
+  nativeha:
+    enable: true
+    nativehaGroup: qm-recovery
+    nativehaGroups:
+    - nativehaGroupId: qm-live
+      name: alpha
+      # role can be Live or Recovery
+      role: Recovery
+      tls: 
+        secretName: helmsecure
+      # definition TLS for the communication between CRR groups
+      crrtls:
+        key:
+          secretName: nha-crr-secret-live
+        trust:
+        - secretName: nha-crr-secret-recovery
+          items:
+          - key: tls.crt
+    - nativehaGroupId: qm-recovery
+      name: beta
+      role: Live
+      address:
+      tls:
+        secretName: helmsecure
+      # definition TLS for the communication between CRR groups
+      crrtls:
+        key:
+          secretName: nha-crr-secret-recovery
+        trust:
+        - secretName: nha-crr-secret-live
+          items:
+          - key: tls.crt
+  mqscConfigMaps:
+    - name: helmsecure
+      items:
+        - mq.mqsc
+  qminiConfigMaps:
+    - name: helmsecure
+      items:
+        - mq.ini
+persistence:
+  qmPVC:
+    enable: true
+    storageClassName: gp2
+security:
+  context:
+    fsGroup: 0
+pki:
+  keys:
+    - name: default
+      secret:
+        secretName: helmsecure
+        items:
+          - tls.key
+          - tls.crt
+  trust:
+    - name: default
+      secret:
+        secretName: helmsecure
+        items:
+          - app.crt
+metadata:
+  annotations:
+    productName: "IBM MQ Advanced for Developers"
+    productID: "2f886a3eefbe4ccb89b2adb97c78b9cb"
+    productChargedContainers: ""
+    productMetric: "FREE"
+route:
+  nodePort:
+    webconsole: true
+    mqtraffic: true
+    hacrrtraffic: true
+  loadBalancer:
+    webconsole: true
+    mqtraffic: true
+    hacrrtraffic: true
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "4"

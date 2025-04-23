@@ -1,0 +1,47 @@
+{{- if (.Values.route.loadBalancer.hacrrtraffic) }}
+# © Copyright IBM Corporation 2025
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# 
+# A seperate load balancer to MQ data and web console is used. On certain
+# platforms, such as AWS EKS, if all ports are combined it does not work. 
+# This is due to port 1414 not being open in recovery mode. Therefore a 
+# individual loadbalancer for Native HA CRR is created.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ibm-mq.fullname" . }}-loadbalancer-hacrr
+  labels:
+    {{- include "ibm-mq.labels" . | nindent 4 }}
+  # Additional annotations to be added to the load balancer annotations
+  {{- with .Values.route.loadBalancer.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}    
+spec:
+  type: LoadBalancer
+  ports:
+  {{- if .Values.route.loadBalancer.hacrrtraffic }}
+  - port: 9415
+    name: ha-crr
+  {{- end }}
+  {{- if .Values.route.loadBalancer.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range $group := .Values.route.loadBalancer.loadBalancerSourceRanges }}
+    - {{ $group -}}
+  {{ end }}
+  {{- end }}
+  selector:
+{{- include "ibm-mq.selectorLabels" . | nindent 4 }}
+{{- end }}
