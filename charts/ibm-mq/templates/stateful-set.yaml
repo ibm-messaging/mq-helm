@@ -144,6 +144,8 @@ spec:
       volumes:
       {{- else if .Values.web.manualConfig.configMap.name }}
       volumes:
+      {{- else if .Values.readinessProbe.useLabelPatcher }}
+      volumes:
       {{- else if .Values.web.manualConfig.secret.name }}
       volumes:
       {{- end}}
@@ -329,8 +331,49 @@ spec:
           defaultMode: 420
           secretName: {{ .Values.credentials.secret }}
       {{- end }}
+      {{- if .Values.readinessProbe.useLabelPatcher }}
+      - name: state
+        emptyDir: {}
+      {{- end }}
       terminationGracePeriodSeconds: {{.Values.queueManager.terminationGracePeriodSeconds}}
       containers:
+        {{- if .Values.readinessProbe.useLabelPatcher }}
+        - name: state-checker
+          command:
+            - sh
+            - '-c'
+            - >
+              sleep 20;
+              while true; do
+                sleep $(($RANDOM % 5 + 5));
+                KUBE_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+                NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+                echo "Checking state of the queue manager"
+                STATE=$(cat /etc/mqm/state/test)
+                if [ $STATE -eq 0 ]; then
+                echo "Queue manager is active"
+                echo "Patching the label"
+                curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
+                    --request PATCH \
+                    --header "Content-Type: application/json-patch+json" \
+                    --data '[ { "op": "replace", "path": "/metadata/labels/role", "value": "master" } ]' \
+                    https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/pods/$HOSTNAME > /dev/null
+                else
+                echo "Queue manager is not active"
+                echo "Patching the label"
+                curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
+                    --header "Content-Type: application/json-patch+json" \
+                    --request PATCH \
+                    --data '[ { "op": "replace", "path": "/metadata/labels/role", "value": "standby" } ]' \
+                    https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_PORT_443_TCP_PORT/api/v1/namespaces/$NAMESPACE/pods/$HOSTNAME > /dev/null
+                fi
+              done
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /etc/mqm/state
+              name: state
+        {{- end }}
         - name: qmgr
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -424,6 +467,8 @@ spec:
           {{- else if .Values.web.manualConfig.configMap.name }}
           volumeMounts:
           {{- else if .Values.web.manualConfig.secret.name }}
+          volumeMounts:
+          {{- else if .Values.readinessProbe.useLabelPatcher }}
           volumeMounts:
           {{- end}}
           {{- if not (eq $HATLSSecretName "") }}
@@ -546,6 +591,10 @@ spec:
           - name: mq-credentials
             mountPath: "/var/run/secrets"
           {{- end }}
+          {{- if .Values.readinessProbe.useLabelPatcher }}
+          - name: state
+            mountPath: /etc/mqm/state
+          {{- end }}
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: {{ .Values.security.readOnlyRootFilesystem }}
@@ -573,8 +622,17 @@ spec:
           # Set readiness probe to determine if the MQ listener is running
           readinessProbe:
             exec:
+              {{- if .Values.readinessProbe.useLabelPatcher }}
+              command:
+              - sh
+              - '-c'
+              - >
+                chkmqready;
+                echo $? > /etc/mqm/state/test
+              {{- else }}
               command:
               - chkmqready
+              {{- end }}
             {{- if or .Values.queueManager.nativeha.enable .Values.queueManager.multiinstance.enable }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds | default 0 }}
             {{- else }}
