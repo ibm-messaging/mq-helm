@@ -146,6 +146,8 @@ spec:
       volumes:
       {{- else if .Values.web.manualConfig.secret.name }}
       volumes:
+      {{- else if .Values.queueManager.mqscDynamicConfigMaps }}
+      volumes:
       {{- end}}
       {{- if .Values.queueManager.multiinstance.enable }}
       - name: {{ $dataVolumeClaimName }}
@@ -260,6 +262,23 @@ spec:
               path: {{ . }}
           {{- end }}
       {{- end }}
+      {{- end }}
+      {{- if .Values.queueManager.mqscDynamicConfigMaps }}
+      - name: partner-configmaps
+        projected:
+          defaultMode: 511
+          sources:
+          {{- range $index, $source := .Values.queueManager.mqscDynamicConfigMaps }}
+            {{- if $source.items }}
+            - configMap:
+                name: {{ $source.name }}                
+                items:
+                {{- range $source.items }}
+                  - key: {{ . }}
+                    path: {{ . }}
+                {{- end }}
+            {{- end }}
+          {{- end }}
       {{- end }}
       {{- range $index, $source := .Values.queueManager.qminiConfigMaps }}
       {{- if $source.items }}
@@ -425,6 +444,8 @@ spec:
           volumeMounts:
           {{- else if .Values.web.manualConfig.secret.name }}
           volumeMounts:
+          {{- else if .Values.queueManager.mqscDynamicConfigMaps }}
+          volumeMounts:
           {{- end}}
           {{- if not (eq $HATLSSecretName "") }}
           - name: ha-tls
@@ -454,6 +475,10 @@ spec:
             readOnly: true
           {{- end }}
           {{- end }}
+          {{- end }}
+          {{- if .Values.queueManager.mqscDynamicConfigMaps }}
+          - name: partner-configmaps
+            mountPath: "/partner-configmaps"
           {{- end }}
           {{- if .Values.queueManager.qminiConfigMaps }}
           {{- range $index, $source := .Values.queueManager.qminiConfigMaps }}

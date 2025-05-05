@@ -1,0 +1,7 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: static-configmap
+data:
+  static-configmap.mqsc: |-    
+    DEFINE SERVICE(APPLY_MQSC) CONTROL(QMGR) SERVTYPE(SERVER) STARTCMD('/partner-configmaps/start-mqsc.sh') STARTARG(QM1) STOPCMD('/partner-configmaps/stop-mqsc.sh') STOPARG('') STDOUT('') STDERR('') REPLACE
