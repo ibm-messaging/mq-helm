@@ -19,6 +19,8 @@ Prior to using the Helm chart you will need to install four dependencies:
 
 ## Testing
 
+The prerequisite is that the IBM MQ is installed under `/opt/mqm` directory or binaries (Redistributable client) are available in the same path on the host machine on which the testing is carried out. 
+
 Navigate to `../test` directory. No modifications should be required, as the endpoint configuration for your environment will be discovered automatically.
 
 1. To initiate the testing, run the `./sendMessage.sh <namespace>` command. It will then connect to MQ and start sending messages immediately.

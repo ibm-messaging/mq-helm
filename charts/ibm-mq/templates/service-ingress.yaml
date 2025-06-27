@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2023
+# © Copyright IBM Corporation 2023, 2025
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,16 +30,16 @@ spec:
     service:
       name: {{ include "ibm-mq.fullname" . }}
       port:
-        number: 9443
+        name: console-https
   ingressClassName: nginx
   rules:
   {{- if .Values.route.ingress.webconsole.hostname }}
     - host: {{ .Values.route.ingress.webconsole.hostname }}
       http:
   {{- else }}
-      - http:
+    - http:
   {{- end }}
-          paths:
+        paths:
   {{- if .Values.route.ingress.webconsole.path }}
           - path: {{ .Values.route.ingress.webconsole.path }}
   {{- else }}
@@ -48,15 +48,15 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "ibm-mq.fullname" . }}-web
+                name: {{ include "ibm-mq.fullname" . }}
                 port:
-                  number: 9443
+                  name: console-https
   {{- if .Values.route.ingress.webconsole.tls.enable }}
   tls:
-    {{- if .Values.route.ingress.webconsole.hostname}}
+    {{- if .Values.route.ingress.webconsole.hostname }}
     - hosts:
-      - {{ .Values.route.ingress.webconsole.hostname }}
-      {{- if .Values.route.ingress.webconsole.tls.secret}}
+        - {{ .Values.route.ingress.webconsole.hostname }}
+      {{- if .Values.route.ingress.webconsole.tls.secret }}
       secretName: {{ .Values.route.ingress.webconsole.tls.secret }}
       {{- end }}
     {{- else }}

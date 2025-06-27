@@ -1,0 +1,105 @@
+{{- $configMapName := include "ibm-mq.fullname" . }}
+{{- $crrLocalGroupsIndex := include "ibm-mq.crr.localGroupsIndex" . }}
+{{- $crrLocalGroupIsRecovery := include "ibm-mq.crr.isLocalARecoveryGroup" . }}
+{{- $crrRemoteGroupsIndexes := include "ibm-mq.crr.remoteGroupsIndex" . | split ";" }}
+{{- $crrRemoteGroupsDeclared := not (eq $crrRemoteGroupsIndexes._0 "") }}
+{{- $crrDeclared := or $crrLocalGroupIsRecovery (and (not (eq $crrLocalGroupsIndex "")) $crrRemoteGroupsDeclared) }}
+{{- if $crrDeclared }}
+# © Copyright IBM Corporation 2025
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $configMapName }}-nativeha-configmap
+  labels:
+    {{- include "ibm-mq.labels" . | nindent 4 }}
+data:
+  cm-nativeha-ini : |
+    NativeHAInstance:
+      Name={{ include "ibm-mq.pod0.name" . }}
+      ReplicationAddress={{ include "ibm-mq.pod0.service" . }}(9414)
+    NativeHAInstance:
+      Name={{ include "ibm-mq.pod1.name" . }}
+      ReplicationAddress={{ include "ibm-mq.pod1.service" . }}(9414)
+    NativeHAInstance:
+      Name={{ include "ibm-mq.pod2.name" . }}
+      ReplicationAddress={{ include "ibm-mq.pod2.service" . }}(9414)
+{{- $HATLSCipherSpec := "" }}
+{{- if hasKey .Values.queueManager.nativeha "tls" }}
+  {{- if hasKey .Values.queueManager.nativeha.tls "cipherSpec" }}
+    {{- $HATLSCipherSpec = .Values.queueManager.nativeha.tls.cipherSpec }}
+  {{- else }}
+    {{- if not (hasKey .Values.queueManager.nativeha.tls "secretName") }}
+      {{- $HATLSCipherSpec = "NULL" }}
+    {{- end }}
+  {{- end }}
+{{- else }}
+  {{- $HATLSCipherSpec = "NULL" }}
+{{- end }}
+{{- with index .Values.queueManager.nativeha.nativehaGroups ($crrLocalGroupsIndex | int) }}
+  {{- if hasKey . "tls" }}
+    {{- if hasKey .tls "cipherSpec" }}
+      {{- $HATLSCipherSpec = coalesce .tls.cipherSpec $HATLSCipherSpec }}
+    {{- else }}
+      {{- if not (hasKey .tls "secretName") }}
+        {{- $HATLSCipherSpec = "NULL" }}
+      {{- else }}
+        {{- $HATLSCipherSpec = "" }}
+      {{- end }}
+    {{- end }}
+  {{- else }}
+    {{- if eq $HATLSCipherSpec "" }}
+      {{- $HATLSCipherSpec = "NULL" }}
+    {{- end }}
+  {{- end }}
+  {{- if not (eq $HATLSCipherSpec "") }}
+    NativeHALocalInstance:
+      CipherSpec={{ $HATLSCipherSpec }}
+  {{- end }}
+ {{- end }}
+{{- if $crrDeclared }}
+# Native HA - Cross Region Replication enabled
+  cm-nativeha-crr-ini : |
+    NativeHALocalInstance:
+  {{- with index .Values.queueManager.nativeha.nativehaGroups ($crrLocalGroupsIndex | int) }}
+      GroupName={{ .name }}
+    {{- $validRoles := list "Live" "Recovery" }}
+    {{- if not (has .role $validRoles) }}
+      {{- fail (printf "%s '%s' %s" "nativehaGroupId" .nativehaGroupId "must have a Live or Recovery role.") }}
+    {{- end }}
+      GroupRole={{ .role }}
+    {{- if not $crrLocalGroupIsRecovery }}
+      GroupLocalAddress={{ default "(9415)" .address }}
+    {{- else }}
+      GroupLocalAddress=(9415)
+    {{- end }}
+    {{- if .crrtls }}
+      GroupCipherSpec={{ default "ANY_TLS12_OR_HIGHER" .crrtls.cipherSpec }}
+    {{- end }}
+    {{- $negativeValues := list "No" "false" false }}
+    {{- if $crrRemoteGroupsDeclared }}
+    NativeHARecoveryGroup:
+      {{- with index $.Values.queueManager.nativeha.nativehaGroups ($crrRemoteGroupsIndexes._0 | int) }}
+      Enabled={{ if (has .enabled $negativeValues) }}No{{ else }}Yes{{ end }}
+        {{- if hasKey . "name" }}
+      GroupName={{ .name }}
+        {{- end }}
+        {{- if and (hasKey . "address") (not (empty .address)) }}
+      ReplicationAddress={{ .address }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

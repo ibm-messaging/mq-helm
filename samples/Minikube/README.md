@@ -25,6 +25,8 @@ Prior to using the Helm chart you will need to install three dependencies:
 Within minikube there is an unfortunate behavior on certain platforms where it is not immediately possible to communicate from the host machine to a node port. The issue was reported in this [GitHub issue](https://github.com/kubernetes/minikube/issues/7344). Therefore there are two sets of instructions, one for Linux and another for alternative platforms.
 
 ### Testing on Linux
+The prerequisite is that the IBM MQ is installed under `/opt/mqm` directory or binaries (Redistributable client) are available in the same path on the host machine on which the testing is carried out. 
+
 Navigate to *../test* directory. No modifications should be required, as the endpoint configuration for your environment will be discovered automatically.
 
 1. To initiate the testing, run the **./sendMessage.sh \<namespace\>** command. It will then connect to MQ and start sending messages immediately.

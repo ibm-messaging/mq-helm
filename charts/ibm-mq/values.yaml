@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2021, 2023
+# © Copyright IBM Corporation 2021, 2025
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,11 +19,20 @@ image:
   # repository is the container repository to use
   repository: icr.io/ibm-messaging/mq
   # tag is the tag to use for the container repository
-  tag: 9.3.4.0-r1
+  tag: 9.4.2.0-r1
   # pullSecret is the secret to use when pulling the image from a private registry
   pullSecret:
   # pullPolicy is either IfNotPresent or Always (https://kubernetes.io/docs/concepts/containers/images/)
   pullPolicy: IfNotPresent
+  # disableDefaultPullSecret to use when pulling the image from a private registry and the ibm-entitlement-key is not required
+  disableDefaultPullSecret: false
+
+# set passwords for users: "admin" and "app"
+credentials:
+  # enabled is whether to configure user credentials via secret or not. (in MQ /run/secrets directory)
+  enable: false
+  # If enabled, provide the name of the secret that contains your user passwords. See adjacent README.md for instructions on how to create this Secret.
+  secret: "mq-credentials"
 
 # metadata allows setting of additional labels and annottations to be added to all resources. Set on helm install using --set metadata.labels.KEY=VALUE,metadata.labels.=VALUE,...
 metadata:
@@ -33,7 +42,7 @@ metadata:
 # persistence section specifies persistence settings which apply to the whole chart
 persistence:
 
-  # dataPVC section specifies settings for the main Persistent Volume Claim, which is used for data in /var/mqm -> /mnt/mqm
+  # dataPVC section specifies settings for the main Persistent Volume Claim, which is used for data in /mnt/mqm-data
   dataPVC:
     # enabled is whether to use this Persistent Volumes or not
     enable: false
@@ -55,7 +64,7 @@ persistence:
     ## storageClass to use for this PVCs
     storageClassName: ""
 
-  # dataPVC section specifies settings for the main Persistent Volume Claim, which is used for data in /mnt/mqm-data
+  # qmPVC section specifies settings for the main Persistent Volume Claim, which is used for data in /mnt/mqm
   qmPVC:
     # enabled is whether to use this Persistent Volumes or not
     enable: true
@@ -85,6 +94,7 @@ security:
   # initVolumeAsRoot specifies whether or not storage provider requires root permissions to initialize
   initVolumeAsRoot: false
   runAsUser:
+  readOnlyRootFilesystem: false
 
 # queueManager section specifies settings for the MQ Queue Manager
 queueManager:
@@ -148,9 +158,11 @@ route:
     nodePort:
       webconsole: false
       mqtraffic: false
+      hacrrtraffic: false
     openShiftRoute:
       webconsole: false
       mqtraffic: false
+      hacrrtraffic: false
     loadBalancer:
       webconsole: false
       mqtraffic: false
@@ -186,6 +198,8 @@ metrics:
 affinity:
   nodeAffinity:
     matchExpressions: []
+
+topologySpreadConstraints: {}  
 
 tolerations: []
 

@@ -8,3 +8,5 @@ samples/AzureAKSMultiInstance/deploy/mtlsqm.yaml
 samples/AzureAKSMultiInstance/test/ccdt_generated.json
 samples/OpenShiftNativeHA/deploy/mtlsqm.yaml
 samples/OpenShiftNativeHA/test/ccdt_generated.json
+samples/AWSEKSCrossRegionReplication/deploy/mtlsqm.yaml
+samples/AWSEKSCrossRegionReplication/test/ccdt_generated.json

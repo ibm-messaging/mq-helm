@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2021
+# © Copyright IBM Corporation 2021,2025
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-{{- if .Values.route.nodePort.mqtraffic }}
+{{- if or .Values.route.nodePort.mqtraffic .Values.route.nodePort.hacrrtraffic }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -21,8 +21,14 @@ metadata:
 spec:
   type: NodePort
   ports:
+{{- if .Values.route.nodePort.mqtraffic }}
   - port: 1414
     name: qmgr
+{{- end }}
+{{- if .Values.route.nodePort.hacrrtraffic }}
+  - port: 9415
+    name: ha-crr
+{{- end }}
   selector:
 {{- include "ibm-mq.selectorLabels" . | nindent 4 }}
 {{- end }}

@@ -1,5 +1,5 @@
 # IBM MQ Sample Helm Chart
-This repository provides a helm chart to deploy an IBM® MQ container built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified against the [9.3.4 branch](https://github.com/ibm-messaging/mq-container/tree/9.3.4).
+This repository provides a helm chart to deploy an IBM® MQ container built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified against the [9.4.2 branch](https://github.com/ibm-messaging/mq-container/tree/9.4.2).
 
 ## Pre-reqs
 Prior to using the Helm chart you will need to install two dependencies:
@@ -8,7 +8,7 @@ Prior to using the Helm chart you will need to install two dependencies:
 
 You will also need a kubernetes environment for testing, this could be a private cloud environment or a deployment on a public cloud such as IBM Cloud, AWS, Azure or Google Cloud.
 
-The repoistory includes two directories:
+The repository includes two directories:
 * [ibm-mq](charts/ibm-mq/README.md): the helm chart for IBM MQ
 * [samples](samples/README.md): provides a number of samples of deployment
 
