@@ -81,8 +81,8 @@ resources:
     cpu: 500m
     memory: 1024Mi
   requests:
-    cpu: 100m
-    memory: 512Mi
+    cpu: 500m
+    memory: 1024Mi
 
 security:
   # context section specifies additional security context settings for the pod
