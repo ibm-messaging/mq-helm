@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2021,2025
+# © Copyright IBM Corporation 2021,2026
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 {{- $crrRemoteGroupsIndexes := include "ibm-mq.crr.remoteGroupsIndex" . | split ";" }}
 {{- $crrRemoteGroupsDeclared := not (eq $crrRemoteGroupsIndexes._0 "") }}
 {{- $crrDeclared := or $crrLocalGroupIsRecovery (and (not (eq $crrLocalGroupsIndex "")) $crrRemoteGroupsDeclared) }}
+{{- include "ibm-mq.validatePdbMode" . }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -52,8 +53,24 @@ spec:
   template:
     metadata:
       annotations:
-      {{- with .Values.metadata.annotations }}
-        {{- toYaml . | nindent 8 }}
+      {{- if .Values.queueManager.podDisruptionBudget.enable }}
+        {{- with index .Values.metadata "license_when_replica_or_standby" }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.metadata.annotations }}
+        mq.ibm.com/license-when-active: {{ index .Values.metadata "annotations" | toJson | quote }}
+        {{- end }}
+        {{- if .Values.metadata.license_when_replica_or_standby }}
+          {{- if .Values.queueManager.nativeha.enable }}
+        mq.ibm.com/license-when-replica: {{ index .Values.metadata "license_when_replica_or_standby" | toJson | quote }}
+          {{- else }}
+        mq.ibm.com/license-when-standby: {{ index .Values.metadata "license_when_replica_or_standby" | toJson | quote }}
+          {{- end }}
+        {{- end }}
+      {{- else }}
+        {{- with .Values.metadata.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- end }}
       labels:
       {{- with .Values.metadata.labels }}
@@ -61,6 +78,9 @@ spec:
       {{- end }}
         {{- include "ibm-mq.labels" . | nindent 8 }}
         statefulSetName: {{ $statefulSetName }}
+        {{- if and .Values.queueManager.podDisruptionBudget.enable .Values.queueManager.podDisruptionBudget.initialLabelValue }}
+        {{ .Values.queueManager.podDisruptionBudget.activeLabelKey }}: {{ .Values.queueManager.podDisruptionBudget.initialLabelValue }}
+        {{- end }}
     spec:
       affinity:
       {{- if or .Values.queueManager.nativeha.enable .Values.queueManager.multiinstance.enable }}
@@ -96,6 +116,9 @@ spec:
                 - {{ . }}
                 {{- end }}
               {{- end }}
+      {{- if .Values.queueManager.podDisruptionBudget.enable }}
+      automountServiceAccountToken: false
+      {{- end }}
       {{- if .Values.topologySpreadConstraints }}
       topologySpreadConstraints: {{ toYaml .Values.topologySpreadConstraints | nindent 8 }}
       {{- end }}
@@ -145,6 +168,8 @@ spec:
       {{- else if .Values.web.manualConfig.configMap.name }}
       volumes:
       {{- else if .Values.web.manualConfig.secret.name }}
+      volumes:
+      {{- else if .Values.queueManager.podDisruptionBudget.enable }}
       volumes:
       {{- end}}
       {{- if .Values.queueManager.multiinstance.enable }}
@@ -329,6 +354,38 @@ spec:
           defaultMode: 420
           secretName: {{ .Values.credentials.secret }}
       {{- end }}
+      {{- if .Values.queueManager.podDisruptionBudget.enable }}
+      - name: podmetadata
+        downwardAPI:
+          defaultMode: 420
+          items:
+            - path: labels
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.labels
+            - path: annotations
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.annotations
+      - name: service-account-token
+        projected:
+          defaultMode: 420
+          sources:
+          - serviceAccountToken:
+              path: token
+              expirationSeconds: 7200
+          - configMap:
+              items:
+              - key: ca.crt
+                path: ca.crt
+              name: kube-root-ca.crt
+          - downwardAPI:
+              items:
+              - fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+                path: namespace
+      {{- end }}
       terminationGracePeriodSeconds: {{.Values.queueManager.terminationGracePeriodSeconds}}
       containers:
         - name: qmgr
@@ -385,6 +442,8 @@ spec:
             value: "{{ .Values.queueManager.nativeha.tls.cipherSpec | default "ANY_TLS12_OR_HIGHER"}}"
             {{- end }}
           {{- end }}
+          - name: AMQ_CONTAINER_LICENSING
+            value: "true"
           - name: MQ_LOGGING_CONSOLE_FORMAT
             value: {{ .Values.log.format | default "basic" }}
           - name: MQ_ENABLE_METRICS
@@ -404,6 +463,10 @@ spec:
           {{- range $index, $source := .Values.queueManager.envVariables }}
           - name: {{ $source.name }}
             value: "{{ $source.value }}"
+          {{- end }}
+          {{- if .Values.queueManager.podDisruptionBudget.enable }}
+          - name: MQ_ENABLE_READY_REPLICAS
+            value: "true"
           {{- end }}
           {{- if .Values.queueManager.nativeha.tls }}
           volumeMounts:
@@ -598,8 +661,9 @@ spec:
 {{ toYaml .Values.resources.limits | indent 14 }}
             requests:
 {{ toYaml .Values.resources.requests | indent 14 }}
-      {{- if .Values.security.initVolumeAsRoot }}
+      {{- if or .Values.security.initVolumeAsRoot .Values.queueManager.podDisruptionBudget.enable }}
       initContainers:
+      {{- if .Values.security.initVolumeAsRoot }}
         - name: qmgr-init
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -636,7 +700,9 @@ spec:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
             runAsNonRoot: false
-            runAsUser: 0
+            {{- if .Values.security.runAsUser }}
+            runAsUser: {{ .Values.security.runAsUser }}
+            {{- end }}
             privileged: false
             capabilities:
               add:
@@ -645,6 +711,72 @@ spec:
                 - DAC_OVERRIDE
               drop:
                 - ALL
+      {{- end }}
+      {{- if .Values.queueManager.podDisruptionBudget.enable }}
+        - name: metadataserver
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          restartPolicy: Always
+          command:
+          - runmetadataserver
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            {{- if .Values.security.runAsUser }}
+            runAsUser: {{ .Values.security.runAsUser }}
+            {{- end }}
+          startupProbe:
+            exec:
+              command:
+              - chkmetadatastarted
+            failureThreshold: 12
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+              - chkmetadatahealthy
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+              - chkmetadataready
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 100m
+              memory: 50Mi
+            requests:
+              cpu: 100m
+              memory: 50Mi
+          env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          terminationMessagePath: /run/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /run/podmetadata
+            name: podmetadata
+            readOnly: true
+          - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+            name: service-account-token
+            readOnly: true
+      {{- end }}
       {{- end }}
   volumeClaimTemplates:
   {{- if and (.Values.persistence.dataPVC.enable) (eq .Values.queueManager.multiinstance.enable false) }}

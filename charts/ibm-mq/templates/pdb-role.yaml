@@ -1,0 +1,36 @@
+{{- include "ibm-mq.validatePdbMode" . }}
+{{- if include "ibm-mq.pdbEnabled" . }}
+# © Copyright IBM Corporation 2026
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Role — grants the queue manager ServiceAccount the minimum permissions
+# needed by the PDB sidecar / MQ_ENABLE_READY_REPLICAS feature:
+#
+#   • patch pods — to toggle the mq.ibm.com/status label (initializing → active)
+#     so that PDB-selector services route traffic only to the active replica.
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "{{ include "ibm-mq.fullname" . }}-pdb"
+  labels:
+{{- include "ibm-mq.labels" . | nindent 4 }}
+rules:
+  # Required to patch the mq.ibm.com/status label on the Pod itself
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["patch"]
+    resourceNames:
+      {{- include "ibm-mq.pdb.podResourceNames" . | nindent 6 }}
+{{- end }}

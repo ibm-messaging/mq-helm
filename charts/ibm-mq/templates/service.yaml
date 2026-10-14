@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2021,2025
+# © Copyright IBM Corporation 2021,2026
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,4 +29,4 @@ spec:
     name: ha-crr
 {{- end }}
   selector:
-{{- include "ibm-mq.selectorLabels" . | nindent 4 }}
+{{- include "ibm-mq.pdbSelectorLabels" . | nindent 4 }}

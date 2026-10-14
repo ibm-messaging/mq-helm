@@ -1,0 +1,25 @@
+{
+    "channel":
+    [
+        {
+            "name": "MTLSQMCHL",
+            "clientConnection":
+            {
+                "connection":
+                [
+                    {
+                        "host": "secureapphelm-ibm-mq-qm-$TARGET_NAMESPACE.$ROOTURL",
+                        "port": 443
+                    }
+                ],
+                "queueManager": "secureapphelm"
+            },
+            "transmissionSecurity":
+            {
+              "cipherSpecification": "ANY_TLS12_OR_HIGHER",
+              "certificateLabel": "aceclient"
+            },
+            "type": "clientConnection"
+        }
+   ]
+}

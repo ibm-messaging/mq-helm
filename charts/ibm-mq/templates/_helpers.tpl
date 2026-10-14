@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2021,2025
+# © Copyright IBM Corporation 2021,2026
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -78,6 +78,17 @@ Selector labels
 {{- define "ibm-mq.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "ibm-mq.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/* 
+Pod Disruption Budget - selector label - used where traffic must
+flow to the Active instance
+*/}}
+{{- define "ibm-mq.pdbSelectorLabels" -}}
+{{- if .Values.queueManager.podDisruptionBudget.enable -}}
+{{ .Values.queueManager.podDisruptionBudget.activeLabelKey }}: {{ .Values.queueManager.podDisruptionBudget.activeLabelValue }}
+{{- end }}
+{{ include "ibm-mq.selectorLabels" . }}
 {{- end }}
 
 {{/*
@@ -207,5 +218,74 @@ Additional additional labels
    {{- $count = add1 $count }}
   {{- end }}
  {{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Returns "true" if the PodDisruptionBudget should be created, empty string otherwise.
+Usage: {{- if include "ibm-mq.pdbEnabled" . }}
+*/}}
+{{- define "ibm-mq.pdbEnabled" -}}
+{{- if .Values.queueManager.podDisruptionBudget.enable -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
+Validates PDB configuration and fails fast with a clear message when:
+  - PDB is enabled but neither nativeha nor multiinstance is enabled
+     (a single-replica deployment has no peer to absorb disruptions).
+  - PDB is enabled and maxUnavailable is set but is not a positive integer
+     or a valid percentage string (e.g. "50%").
+
+Usage: place {{ include "ibm-mq.validatePdbMode" . }} near the top of any
+template that creates the PDB resource, or once in a dedicated validate.yaml.
+*/}}
+{{- define "ibm-mq.validatePdbMode" -}}
+{{- $nativeha      := .Values.queueManager.nativeha.enable -}}
+{{- $multiinstance := .Values.queueManager.multiinstance.enable -}}
+{{- $pdbEnabled    := .Values.queueManager.podDisruptionBudget.enable -}}
+{{/* PDB requires a multi-replica topology */}}
+{{- if and $pdbEnabled (not (or $nativeha $multiinstance)) -}}
+  {{- fail "ibm-mq: podDisruptionBudget.enable requires either nativeha or multiinstance to be enabled (single-replica deployments cannot use a PDB)" -}}
+{{- end -}}
+{{/* PDB requires both annotation sets to be present */}}
+{{- if $pdbEnabled -}}
+  {{- if not .Values.metadata.annotations -}}
+    {{- fail "ibm-mq: podDisruptionBudget.enable requires metadata.annotations to be set" -}}
+  {{- end -}}
+  {{- if not (index .Values.metadata "license_when_replica_or_standby") -}}
+    {{- fail "ibm-mq: podDisruptionBudget.enable requires metadata.license_when_replica_or_standby to be set" -}}
+  {{- end -}}
+{{- end -}}
+{{/* validate maxUnavailable when it is explicitly set */}}
+{{- if $pdbEnabled -}}
+  {{- $mu := .Values.queueManager.podDisruptionBudget.maxUnavailable -}}
+  {{- if not (kindIs "invalid" $mu) -}}
+    {{- if kindIs "string" $mu -}}
+      {{- if not (regexMatch "^[1-9][0-9]*%$" $mu) -}}
+        {{- fail (printf "ibm-mq: podDisruptionBudget.maxUnavailable \"%s\" is invalid. String values must be a percentage such as \"50%%\"" $mu) -}}
+      {{- end -}}
+    {{- else if kindIs "float64" $mu -}}
+      {{- if or (lt (int $mu) 1) (gt (int $mu) 100) -}}
+        {{- fail (printf "ibm-mq: podDisruptionBudget.maxUnavailable %d is invalid. Integer values must be between 1 and 100" (int $mu)) -}}
+      {{- end -}}
+    {{- else -}}
+      {{- fail (printf "ibm-mq: podDisruptionBudget.maxUnavailable must be an integer or a percentage string (e.g. 1 or \"50%%\"), got type %s" (kindOf $mu)) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Returns the list of pod resourceNames for RBAC, scoped to the active topology:
+  - nativeha:      pod-0, pod-1, pod-2
+  - multiinstance: pod-0, pod-1
+*/}}
+{{- define "ibm-mq.pdb.podResourceNames" -}}
+- {{ include "ibm-mq.pod0.name" . }}
+- {{ include "ibm-mq.pod1.name" . }}
+{{- if .Values.queueManager.nativeha.enable }}
+- {{ include "ibm-mq.pod2.name" . }}
 {{- end }}
 {{- end }}
