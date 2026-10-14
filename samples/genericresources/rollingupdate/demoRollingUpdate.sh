@@ -1,5 +1,5 @@
 #! /bin/bash
-# © Copyright IBM Corporation 2021
+# © Copyright IBM Corporation 2021,2026
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ manualAcceptance=${manualAcceptance:-'true'}
 # Usage method for the script, used in error situtations
 printUsage()
 {
-  echo "Usage: applyRollingUpdate [statefulSetName] [namespace]"
+  echo "Usage: demoRollingUpdate [statefulSetName] [namespace]"
   echo "Applies a rolling update to an IBM MQ Native HA deployment."
   echo ""
   echo "Mandatory arguments:"
@@ -42,7 +42,7 @@ printUsage()
 
 # Method that deletes a running Pod and waits for this to complete
 # The logic only waits for 10 mins, and if the Pod has not restarted the script
-# will continue to recycle additional Pods. In certain situations this may
+# will not continue to recycle additional Pods. In certain situations this may
 # cause all your Pods and therefore Queue Manager to be unavailable until
 # the issue is fixed manually.
 recycle()
@@ -52,7 +52,7 @@ recycle()
 
   # Use kubectl to delete this Pod
   kubectl delete pods -n $namespace $recyclePodName
-  echo "$recyclePodName deleted, waiting for it to become ready..."
+  echo "$recyclePodName deleted. Waiting for the pod to become ready..."
   attempt=0
 
   # Entering a wait loop for the Pod to become available. Unfortunately its not
@@ -63,8 +63,7 @@ recycle()
   while true; do
     containername=$(kubectl get pods -n $namespace $recyclePodName -o jsonpath='{.status.containerStatuses..name}')
     started=$(kubectl get pods -n $namespace $recyclePodName -o jsonpath='{.status.containerStatuses..started}')
-    if [[ $started == "true" && $containername == "qmgr" ]]; then
-      echo "Sleeping for 5 seconds to allow pod to resync with native ha pairs"
+    if [[ $started == "true" && ${containername:0:4} == "qmgr" ]]; then
       echo "$recyclePodName ready"
       return
     fi
@@ -76,8 +75,46 @@ recycle()
     sleep 10
     attempt=$((attempt+1))
   done
+}
 
+# Method that checks the Queue manager Native HA status. It will wait for the
+# INSYNC and QUORUM values to be 'yes' and '3/3' respectively.
+# The logic will wait for 10 mins, and if the Queue Manager's NativeHA state is
+# different, it will not continue to recycle additional Pods. In certain
+# situations this may cause all your Pods and therefore Queue Manager to be
+# unavailable until the issue is fixed manually.
+verify_qmgr()
+{
+  # Use parameter 1 into the method as the ACTIVE podName
+  checkPodName=$1
 
+  echo "Checking the queue manager INSYNC and QUORUM status ..."
+
+  attempt=0
+
+  # Entering a wait loop for the Qmgr to report it is in-sync and has 3/3 quorum.
+  while true; do
+
+    # Use kubectl to verify that queue manager is INSYNC and full QUORUM
+    qmgrCheck=$(kubectl exec -n $namespace $checkPodName -c qmgr -- dspmq -o nativeha)
+    inSyncCheck=$(echo $qmgrCheck | sed 's/^.*INSYNC(\([a-z]*\)).*$/\1/')
+    quorumCheck=$(echo $qmgrCheck | sed 's/^.*QUORUM(\([0-9/]*\)).*$/\1/')
+
+    if [[ $inSyncCheck == "yes" && $quorumCheck == "3/3" ]]; then
+      echo "Queue Manager INSYNC: $inSyncCheck"
+      echo "Queue Manager QUORUM: $quorumCheck"
+      return
+    fi
+    if [ $attempt -gt 60 ]; then
+      echo "Queue Manager INSYNC: $inSyncCheck"
+      echo "Queue Manager QUORUM: $quorumCheck"
+      echo "Queue manager was not ready in 10 mins"
+      echo "Exiting, as manual recycling may be required"
+      exit 1
+    fi
+    sleep 10
+    attempt=$((attempt+1))
+  done
 }
 
 # Check that all parameters have been set correctly
@@ -96,7 +133,7 @@ IFS=$'\n' read -r -d '' -a allPods < <( kubectl get pods -l statefulSetName=$sta
 if [ "$manualAcceptance" = true ] ; then
   printf -v allPodsString '%s,' "${allPods[@]}"
   echo "Found the following pods to recycle: ${allPodsString}"
-  echo "Determined ${readyPod} is the active instance and will leave until the end"
+  echo "Determined ${readyPod} is the Active instance and will leave until the end"
   echo "To continue type 'accept' below:"
   read acceptConfirmation
   if [ "$acceptConfirmation" != "accept" ] ; then
@@ -108,18 +145,23 @@ fi
 # Iterate over all of the Pods, restarting each. The active pod will be skipped
 # and this will be completed next. This assures there is only a single failover.
 for pod in "${allPods[@]}"; do
-  if [ "$pod" = "$readyPod" ] ; then
-     echo "Leaving $pod pod until the end"
-  else
-    echo "Recycling $pod"
+  if [ "$pod" != "$readyPod" ] ; then
+    echo ""
+    echo "Recycling Replica instance pod: $pod"
     recycle $pod
+    verify_qmgr $pod
   fi
 done
 
 # Finally restart the active Pod, causing a failover of the queue manager.
-echo "Now recycling $readyPod"
+echo ""
+echo "Recycling Active instance pod: $readyPod"
 recycle $readyPod
+verify_qmgr $readyPod
 
 # Print out the currently active Pod instance.
 IFS=$'\n' read -r -d '' -a newReadyPod < <( kubectl get pods -l statefulSetName=$statefulSetName -n $namespace -o go-template='{{range $index, $element := .items}}{{range .status.containerStatuses}}{{if .ready}}{{$element.metadata.name}}{{"\n"}}{{end}}{{end}}{{end}}')
-echo "Recycle complete, the active instance is now $newReadyPod"
+echo ""
+echo "Recycle complete."
+echo "The Active instance pod is now: $newReadyPod"
+

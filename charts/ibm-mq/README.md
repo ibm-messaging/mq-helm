@@ -4,16 +4,17 @@
 
 ## Introduction
 
-This chart deploys a single IBM® MQ server (Queue Manager) built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified using the [9.4.2 branch](https://github.com/ibm-messaging/mq-container/tree/9.4.2). IBM MQ is messaging middleware that simplifies and accelerates the integration of diverse applications and business data across multiple platforms.  It uses message queues, topics and subscriptions to facilitate the exchanges of information and offers a single messaging solution for cloud and on-premises environments.
+This chart deploys a single IBM® MQ server (Queue Manager) built from the [IBM MQ Container GitHub repository](https://github.com/ibm-messaging/mq-container), and has been verified using the [10.0.1 branch](https://github.com/ibm-messaging/mq-container/tree/10.0.1). IBM MQ is messaging middleware that simplifies and accelerates the integration of diverse applications and business data across multiple platforms.  It uses message queues, topics and subscriptions to facilitate the exchanges of information and offers a single messaging solution for cloud and on-premises environments.
 
 ## Chart Details
 
 This chart will do the following:
 
-* Create a single Queue Manager deployed as a [StatefulSet](http://kubernetes.io/docs/concepts/abstractions/controllers/statefulsets/) with one, two or three replicas depending on whether Native HA (High Availability option for IBM MQ with a Cloud Pak for Integration entitlement) or Multi-instance is enabled for high availability.  
+* Create a single Queue Manager deployed as a [StatefulSet](http://kubernetes.io/docs/concepts/abstractions/controllers/statefulsets/) with one, two or three replicas depending on whether Native HA (High Availability option for IBM MQ with a Cloud Pak for Integration entitlement) or Multi-instance is enabled for high availability.
 * Create a [Service Account](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) which is used by the StatefulSet.
 * Create a [Service](https://kubernetes.io/docs/concepts/services-networking/service/) of type ClusterIP.  This is used to ensure that other deployments within the Kubernetes Cluster have a consistent hostname/IP address to connect to the Queue Manager, regardless of where it is actually running.
 * Create [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) for the storage of the Queue Manager data, one for each replica in the StatefulSet.
+* [Optional] Create a [PodDisruptionBudget](https://kubernetes.io/docs/tasks/run-application/configure-pdb/), a [Role](https://kubernetes.io/docs/reference/access-authn-authz/rbac/), and a [RoleBinding](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) when `queueManager.podDisruptionBudget.enable` is `true`. These resources allow the native sidecar container to label each pod with its current queue manager status (`mq.ibm.com/status`), so that the PDB can distinguish the active pod from replicas during node drains.
 * [Optional] Create three [Services](https://kubernetes.io/docs/concepts/services-networking/service/) of type ClusterIP when Native HA is enabled. This provides internal communication between the three Pods of the StatefulSet.
 * [Optional] Create a [Service](https://kubernetes.io/docs/concepts/services-networking/service/) of type NodePort for the MQ data traffic. This is used to ensure that MQ connections outside of the Kubernetes Cluster have a consistent entry point, regardless of where the Queue Manager is actually running.
 * [Optional] Create a [Service](https://kubernetes.io/docs/concepts/services-networking/service/) of type NodePort for the MQ web console. This is used to ensure that connections to the Web Console from outside of the Kubernetes Cluster have a consistent entry point, regardless of where the Queue Manager is actually running.
@@ -25,7 +26,7 @@ This chart will do the following:
 
 ## Prerequisites
 
-* Kubernetes 1.18 or later
+* Kubernetes 1.21 or later (core features).  Kubernetes 1.29 or later is required when `queueManager.podDisruptionBudget.enable` is set to `true`, because the PDB sidecar uses the native sidecar container feature (`initContainer.restartPolicy: Always`) which was graduated to GA in v1.29.
 * If a Storage Class is not specified then a suitable default [storage class](https://kubernetes.io/docs/concepts/storage/storage-classes/) must be available.
 
 
@@ -107,8 +108,8 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | Parameter                       | Description                                                     | Default                                    |
 | ------------------------------- | --------------------------------------------------------------- | ------------------------------------------ |
 | `license`                       | Set to `accept` to accept the terms of the IBM license          | `"not accepted"`                           |
-| `image.repository`              | Image full name including repository                            | `ibmcom/mq`                                |
-| `image.tag`                     | Image tag                                                       | `9.4.2.0-r1`                               |
+| `image.repository`              | Image full name including repository                            | `ibmcom/mq`                  |
+| `image.tag`                     | Image tag                                                       | `10.0.1.0-r1`                              |
 | `image.pullPolicy`              | Setting that controls when the kubelet attempts to pull the specified image.                                               | `IfNotPresent`                             |
 | `image.pullSecret`              | An optional list of references to secrets in the same namespace to use for pulling any of the images used by this QueueManager. If specified, these secrets will be passed to individual puller implementations for them to use. For example, in the case of docker, only DockerConfig type secrets are honoured. For more information, see [here](https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod)   | `nil`                                      |
 | `image.disableDefaultPullSecret`              | By default the ibm-entitlement-key is specified within the created service account. If this should be removed set this property to `true`                            | `false`                                |
@@ -121,15 +122,15 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `persistence.dataPVC.size`      | Size of the PersistentVolume to pass to Kubernetes, including SI units. For example, 2Gi.             | `2Gi`                                      |
 | `persistence.dataPVC.storageClassName`  | Storage class to use for this volume. This can be of type ReadWriteOnce or ReadWriteMany. However, IBM MQ only requires ReadWriteOnce in the configurations available via this chart and it is generally good practice to use the simpler Block Storage (ReadWriteOnce). If this value is not specified, then the default storage class will be used.                            | `""`                                       |
 | `persistence.logPVC.enable`           | By default all data and recovery logs are persisted to a Pod's qmPVC. logPVC is an optional PersistentVolume which can be enabled using this field. This PersistentVolume is used for MQ recovery logs. If Multi-instance is enabled this value is set to true.                 | `false`                                     |
-| `persistence.logPVC.name`      |  Suffix for the PVC name               | `data`                                      |
+| `persistence.logPVC.name`      |  Suffix for the PVC name               | `log`                                       |
 | `persistence.logPVC.size`      | Size of the PersistentVolume to pass to Kubernetes, including SI units. For example, 2Gi.              | `2Gi`                                      |
 | `persistence.logPVC.storageClassName`  | Storage class to use for this volume. This can be of type ReadWriteOnce or ReadWriteMany, however it is generally good practice to use Block Storage (ReadWriteOnce) for Native HA deployments. If Multi-instance is enabled, the storage class must be of type ReadWriteMany. If this value is not specified, then the default storage class will be used.                            | `""`                                       |
 | `persistence.qmPVC.enable`           | Default PersistentVolume for any data normally under /var/mqm. Will contain all persisted data and recovery logs, if no other volumes are specified. If Multi-instance is enabled this value is set to true.                 | `true`                                     |
-| `persistence.qmPVC.name`      |  Suffix for the PVC name               | `data`                                      |
+| `persistence.qmPVC.name`      |  Suffix for the PVC name               | `qm`                                        |
 | `persistence.qmPVC.size`      | Size of the PersistentVolume to pass to Kubernetes, including SI units. For example, 2Gi.              | `2Gi`                                      |
 | `persistence.qmPVC.storageClassName`  | Storage class to use for this volume. This can be of type ReadWriteOnce or ReadWriteMany, however it is generally good practice to use Block Storage (ReadWriteOnce) for Native HA deployments. If Multi-instance is enabled, the storage class must be of type ReadWriteMany. If this value is not specified, then the default storage class will be used.                            | `""`                                       |
 | `resources.limits.cpu`          | Kubernetes CPU limit for each Pod of the Queue Manager container            | `500m`                                     |
-| `resources.limits.memory`       | Kubernetes memory limit for each Pod of the Queue Manager container         | `0124Mi`                                    |
+| `resources.limits.memory`       | Kubernetes memory limit for each Pod of the Queue Manager container         | `1024Mi`                                   |
 | `resources.requests.cpu`        | Kubernetes CPU request for each Pod of the Queue Manager container          | `100m`                                     |
 | `resources.requests.memory`     | Kubernetes memory request for each Pod of the Queue Manager container       | `512Mi`                                    |
 | `queueManager.multiinstance.enable`    | Whether to run in Multi-instance mode, with two Pods (one active and one passive Pods). | `false`                     |
@@ -139,8 +140,10 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `queueManager.nativeha.tls.secretName`    | Optional TLS settings for configuring secure communication between Native HA replicas. The name of the Kubernetes secret. | `""`                     |
 | `queueManager.nativeha.nativehaGroup`     | To deploy a Native HA CRR group, this value must match one of the `nativehaGroupId` identifier values in one of the `nativehaGroups` array configurations.    | `""`    |
 | `queueManager.nativeha.nativehaGroups`    | An array of YAML objects that detail a Native HA CRR group configuration. The objects within are `nativehaGroupId`, `name`, `role`, `addresss`, a `tls` array (similar to the queueManager.nativeha.tls.* structure), and a `crrtls` array (to define the encryption from CRR group to CRR group) | `[]` |
-| `queueManager.mqscConfigMaps` | An array of YAML objects that detail the Kubernetes configMap items that should be added.  For further details regarding how this is specified consult [Supplying custom mqsc using a configMap](#Supplying-custom-mqsc-using-a-configMap)  | `[]` |
+| `queueManager.mqscConfigMaps` | An array of YAML objects that detail the Kubernetes configMap items that should be added.  For further details regarding how this is specified consult [Supplying custom mqsc using a ConfigMap](#Supplying-custom-mqsc-using-a-ConfigMap)  | `[]` |
 | `queueManager.mqscSecrets` | An array of YAML objects that detail the Kubernetes secrets items that should be added. For further details regarding how this is specified consult [Supplying custom mqsc using a secret](#Supplying-custom-mqsc-using-a-secret)  | `[]` |
+| `queueManager.podDisruptionBudget.enable` | Whether to enable a Pod Disruption Budget resource to prevent too many pods being unavailable at once. This will configure a sidecar container to perform the relevant label updates on the MQ container pods. Further details can be found in [Enabling Pod Disruption Budget](#Enabling-Pod-Disruption-Budget) | `false` |
+| `queueManager.podDisruptionBudget.maxUnavailable` | Specifies the maximum number of queue manager pods that Kubernetes is permitted to disrupt simultaneously; it must be a positive integer of 1 or greater, and defaults to 1 when not set.  | `1` |
 | `queueManager.qminiConfigMaps` | An array of YAML objects that detail the Kubernetes configMap items that should be added. For further details regarding how this is specified consult [Supplying QM INI using a configMap](#Supplying-QM-INI-using-a-configMap)  | `[]` |
 | `queueManager.qminiSecrets` | An array of YAML objects that detail the Kubernetes secrets items that should be added.  For further details regarding how this is specified consult [Supplying QM INI using a secret](#Supplying-QM-ini-using-a-secret)  | `[]` |
 | `queueManager.envVariables` | An array of YAML objects (name / value pairs) that detail the environment variables that should be associated with the Queue Manager container | `[]` |
@@ -160,7 +163,7 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `livenessProbe.initialDelaySeconds` | Number of seconds after the container has started before the probe is initiated. Defaults to 90 seconds for SingleInstance. Defaults to 0 seconds for a Native HA and Multi-instance deployments. | `90` - single instance, `0` - Native HA and Multi-instance |
 | `livenessProbe.periodSeconds`   | How often (in seconds) to perform the probe.                                       | 10                                         |
 | `livenessProbe.timeoutSeconds`  | Number of seconds after which the probe times out               | 5                                          |
-| `livenessProbe.failureThreshold` | Minimum consecutive failures for the probe to be considered failed after having succeeded | 1               |
+| `livenessProbe.failureThreshold` | Minimum consecutive failures for the probe to be considered failed after having succeeded | 3               |
 | `readinessProbe.initialDelaySeconds` | Number of seconds after the container has started before the probe is initiated. Defaults to 10 seconds for SingleInstance. Defaults to 0 for a Native HA and Multi-instance deployment.      | 10                                         |
 | `readinessProbe.periodSeconds`  | How often (in seconds) to perform the probe.                    | 5                                          |
 | `readinessProbe.timeoutSeconds` | Number of seconds after which the probe times out               | 3                                          |
@@ -170,11 +173,11 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `startupProbe.successThreshold` | Minimum consecutive successes for the probe to be considered successful.               | 1                                          |
 | `startupProbe.failureThreshold` | Minimum consecutive failures for the probe to be considered failed after having succeeded | 24              |
 | `route.ingress.annotations`          | Additional annotations to be added to an ingress.                 |`{}`                                      |
-| `route.ingress.webconsole.enable `     | Controls if an ingress is created for the MQ web console traffic. For more information, see https://kubernetes.io/docs/concepts/services-networking/ingress/ | `false`                                    |
-| `route.ingress.webconsole.hostname `     | Specifies the host value of the ingress rule.     | `false`                                    |
-| `route.ingress.webconsole.path `     | Specifies the path of the ingress rule.      | `/`                                    |
-| `route.ingress.webconsole.tls.enable `     | If TLS is enabled for the web console ingress.      | `false`                                    |
-| `route.ingress.webconsole.tls.secret `     | The kubernetes secret containing the certificates to be used.      | `false`                                   |
+| `route.ingress.webconsole.enable`     | Controls if an ingress is created for the MQ web console traffic. For more information, see https://kubernetes.io/docs/concepts/services-networking/ingress/ | `false`                                    |
+| `route.ingress.webconsole.hostname`   | Specifies the host value of the ingress rule. When not set, the rule matches all hosts.     | `""`                                       |
+| `route.ingress.webconsole.path`       | Specifies the path of the ingress rule.      | `/`                                        |
+| `route.ingress.webconsole.tls.enable` | If TLS is enabled for the web console ingress.      | `false`                                    |
+| `route.ingress.webconsole.tls.secret` | The Kubernetes Secret containing the TLS certificate and key.      | `""`                                       |
 | `route.loadBalancer.annotations`          | Additional annotations to be added to the load balancer service.                 |`{}`                                      |
 | `route.loadBalancer.loadBalancerSourceRanges`          | This is an array of CIDRs that can be added to a loadbalancer to restrict traffic      |`[]`                  |
 | `route.loadBalancer.mqtraffic `     | Controls if a load balancer service is created for the MQ data traffic.      | `false`                                    |
@@ -191,8 +194,8 @@ Alternatively, each parameter can be specified by using the `--set key=value[,ke
 | `trace.crtmqdir`                | Whether to enable MQ trace on the `crtmqdir` command | `false` |
 | `trace.crtmqm`                  | Whether to enable MQ trace on `crtmqm` command | `false` |
 | `metrics.enabled`               | Whether or not to enable an endpoint for Prometheus-compatible metrics.                 | `true`                                     |
-| `affinity.nodeAffinity.matchExpressions` | Force deployments to particular nodes. Corresponds to the Kubernetes specification for [NodeSelectorRequirement](https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#nodeselectorrequirement-v1-core)                  | ``                                     |
-| `tolerations` | Allow pods to be scheduled on nodes with particular taints. Corresponds to the Kubernetes specification for [Toleration](https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core)                 | ``                                     |
+| `affinity.nodeAffinity.matchExpressions` | Force deployments to particular nodes. Corresponds to the Kubernetes specification for [NodeSelectorRequirement](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#nodeselectorrequirement-v1-core)                  | ``                                     |
+| `tolerations` | Allow pods to be scheduled on nodes with particular taints. Corresponds to the Kubernetes specification for [Toleration](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core)                 | ``                                     |
 | `topologySpreadConstraints` | Control how pods are spread across the Kubernetes cluster. Corresponds to the Kubernetes specification for [Pod Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/)                 | ``                                     |
 
 ## Storage
@@ -207,7 +210,7 @@ It is recommended to use block storage for single instance and Native HA, instea
 
 You must not manually change the number of replicas in the StatefulSet.  The number of replicas controls whether or not Native HA or Multi-instance queue managers are used, and are changed in conjunction with other settings.
 
-The recommended way to scale MQ is by deploying this chart multiple times, creating multiple unique Queue Managers, and connecting the Queue Managers together using MQ configuration, such as MQ clusters — see [Architectures based on multiple queue managers](https://www.ibm.com/docs/en/ibm-mq/9.2?topic=planning-architectures-based-multiple-queue-managers).
+The recommended way to scale MQ is by deploying this chart multiple times, creating multiple unique Queue Managers, and connecting the Queue Managers together using MQ configuration, such as MQ clusters — see [Architectures based on multiple queue managers](https://www.ibm.com/docs/en/ibm-mq/latest?topic=planning-architectures-based-multiple-queue-managers).
 
 ## JSON log output
 
@@ -367,9 +370,10 @@ queueManager:
 You may choose to provide qm.ini configuration as a secret rather than a ConfigMap.
 
 When supplying a Kubernetes secret you must ensure that the item name ends in `.ini`. For example: `qm.ini`.
-The format of the YAML object for `queueManager.qminiConfigMaps` is as follows:
+The format of the YAML object for `queueManager.qminiSecrets` is as follows:
 ```YAML
-qminiSecrets:
+queueManager:
+  qminiSecrets:
   - name: inisecret
     items:
       - secretmq.ini
@@ -378,7 +382,7 @@ qminiSecrets:
 
 `queueManager.qminiSecrets.items` must list the qm.ini files contained in ` queueManager.qminiSecrets.name ` you want to add.
 
-##  Supplying custom web console configuration
+## Supplying custom web console configuration
 The `web.manualConfig` parameter allows you to supply custom web console configuration. This is particularly useful when using a licensed image (non-Developer edition) as the web console is not configured in this environment. The custom configuration can be either stored within a Kubernetes configMap or secret, with two separate parameters available: `web.manualConfig.configMap.name` and `web.manualConfig.secret.name`. For example, if you wanted to set a variable using a configMap you would use the following:
 ```YAML
 web:
@@ -415,7 +419,7 @@ metadata:
     cloudpakName: "IBM Cloud Pak for Integration"
     cloudpakId: "c8b82d189e7545f0892db9ef2731b90d"
 ```
-Depending on the deployment scenario different annotations should be used, for a complete list please consult the IBM MQ Knowledge Center [here](https://www.ibm.com/docs/en/ibm-mq/9.2?topic=sbyomcic-license-annotations-when-building-your-own-mq-container-image#ctr_license_annot__annot8)
+Depending on the deployment scenario different annotations should be used, for a complete list please consult the IBM MQ documentation [here](https://www.ibm.com/docs/en/ibm-mq/9.3.x?topic=plmic-license-annotations-when-building-your-own-mq-container-image#ctr_license_annot__annot8)
 
 
 ## Sample Native HA CRR configurations for Live and Recovery
@@ -456,6 +460,26 @@ queueManager:
           - key: tls.crt
 ```
 
+## Enabling Pod Disruption Budget
+The following snippet from the values.yaml file will, when the queue manager
+is being set up for Multi-Instance or Native HA, configure the MQ Container,
+a labelling sidecar container, and Kubernetes resources (PodDisruptionBudget,
+Role, and RoleBinding) to allow labelling on the MQ queue manager pods.
+The label `mq.ibm.com/status` will be `initializing`, `active` or `replica`
+to indicate the state of each Multi-Instance or Native HA pod.
+
+```YAML
+queueManager:
+  podDisruptionBudget:
+    enable: true
+    maxUnavailable: 1
+```
+With this feature enabled, the `Ready` count for each of the queue managers
+will be `2/2` indicating that the main queue manager and the sidecar pod are
+both available. To determine which is the Active and which is the Replica pod,
+the pod's labels will need to be read by, for example:
+`oc get pods --show-labels`.
+
 ## Copyright
 
-© Copyright IBM Corporation 2021,2025
+© Copyright IBM Corporation 2021,2026

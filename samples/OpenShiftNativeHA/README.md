@@ -10,13 +10,13 @@ Prior to using the Helm chart you will need to install three dependencies:
 
 ## Installation
 1. Log into the OpenShift Cluster using the `oc` command line. If you are unsure how to do this please consult [here](https://docs.openshift.com/container-platform/4.8/cli_reference/openshift_cli/getting-started-cli.html#cli-logging-in_cli-developer-commands).
-1. Change directories to *deploy*: `cd deploy`      
-1. Run the installation command to deploy an instance of the helm chart: `./install.sh <namespace>`            
+2. Change directories to *deploy*: `cd deploy`      
+3. Run the installation command to deploy an instance of the helm chart: `./install.sh <namespace>`            
     Where \<namespace\> is the Kubernetes namespace where the resources should be deployed into. This will deploy a number of resources:
     * The IBM MQ Helm Chart using the properties within the [secureapp_nativeha.yaml](deploy/secureapp_nativeha.yaml) file.
     * A configMap with MQ configuration to define a default Queue, and the security required.
     * A secret that includes certificates and keys from the `genericresources/createcerts` directory. Assuring the communication in MQ is secure.
-1. This will take a minute or so to deploy, and the status can be checked with the following command: `oc get pods | grep secureapp`. Wait until one of the three Pods is showing `1/1` under the ready status (only one will ever show this, the remainding two will be `0/1` showing they are replicas).
+4. This will take a minute or so to deploy, and the status can be checked with the following command: `oc get pods | grep secureapp`. Wait until one of the three Pods is showing `1/1` under the ready status (only one will ever show this, the remainding two will be `0/1` showing they are replicas).
 
 ## Testing
 The prerequisite is that the IBM MQ is installed under `/opt/mqm` directory or binaries (Redistributable client) are available in the same path on the host machine on which the testing is carried out. 
@@ -25,8 +25,19 @@ Navigate to *../test* directory. No modifications should be required, as the end
 
 1. To initiate the testing, run the **./sendMessage.sh \<namespace\>** command. It will then connect to MQ and start sending messages immediately.
 
-1. Open another terminal window and run the **./getMessage.sh \<namespace\>** command. You should see all of the messages being sent by the sendMessaging command.
+2. Open another terminal window and run the **./getMessage.sh \<namespace\>** command. You should see all of the messages being sent by the sendMessaging command.
 
-1. To see how the pods work together in action, run the **oc get pod | grep secureapp** command on another terminal windows to view the current pods, and then delete the running pod (the one with the ready state of `1/1`) by running the command: **oc delete pod secureapphelm-ibm-mq-0** (where the pod name is customized based on which one is active). Once the active pod is deleted, the application connections will then reconnect to the other pod.
+3. To see how the pods work together in action, run the **oc get pod | grep secureapp** command on another terminal windows to view the current pods, and then delete the running pod (the one with the ready state of `1/1`) by running the command: **oc delete pod secureapphelm-ibm-mq-0** (where the pod name is customized based on which one is active). Once the active pod is deleted, the application connections will then reconnect to the other pod.
 
-1. You can clean up the resources by navigating to the *../deploy* directory and running the command **./cleanup.sh \<namespace\>**. This will delete everything. Do not worry if you receive messages about PVCs not being found, this is a generic clean-up script and assumes a worst case scenario.
+4. You can clean up the resources by navigating to the *../deploy* directory and running the command **./cleanup.sh \<namespace\>**. This will delete everything. Do not worry if you receive messages about PVCs not being found, this is a generic clean-up script and assumes a worst case scenario.
+
+## Perform Rolling Update
+If configuration changes on a Native HA queue manager are required, it may be necessary to restart (by deleting the pod and letting the statefulset start a new pod) each of the NativeHA pods. To minimise the impact on the consumers (e.g. applications needing to reconnect) it is advisable to restart the Replica pods first, and lastly the Active pod. The `./deomRollingUpdate.sh` script in the`genericresources/rollingupdate` directory will:
+
+1. Identify the NativeHA instance pods,
+
+2. Confirm from the user that the rolling update should go ahead,
+
+3. Restart and check each of the instance pods; Replica instances first, followed by the Active instance.
+
+After each of the restarts the script will check that the pod is 'ready' and that the queue manager is back in-sync and regained 3/3 quorum. If these checks fail then the script will stop and prompt the user to manually check the instances. 

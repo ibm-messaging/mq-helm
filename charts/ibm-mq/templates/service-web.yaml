@@ -1,4 +1,4 @@
-# © Copyright IBM Corporation 2021
+# © Copyright IBM Corporation 2021,2026
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,5 +24,5 @@ spec:
   - port: 9443
     name: console-https
   selector:
-{{- include "ibm-mq.selectorLabels" . | nindent 4 }}
+{{- include "ibm-mq.pdbSelectorLabels" . | nindent 4 }}
 {{- end }}

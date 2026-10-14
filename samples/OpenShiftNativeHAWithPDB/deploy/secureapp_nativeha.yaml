@@ -1,0 +1,81 @@
+# © Copyright IBM Corporation 2021, 2026
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+license: accept
+queueManager:
+  nativeha:
+    enable: true
+    tls:
+      secretName: helmsecure
+  mqscConfigMaps:
+    - name: helmsecure
+      items:
+        - mq.mqsc
+  qminiConfigMaps:
+    - name: helmsecure
+      items:
+        - mq.ini
+  podDisruptionBudget:
+    enable: true
+    maxUnavailable: 1
+persistence:
+  qmPVC:
+    enable: true
+pki:
+  keys:
+    - name: default
+      secret:
+        secretName: helmsecure
+        items:
+          - tls.key
+          - tls.crt
+  trust:
+    - name: default
+      secret:
+        secretName: helmsecure
+        items:
+          - app.crt
+metadata:
+  annotations:
+    productName: "IBM MQ Advanced for Developers"
+    productID: "2f886a3eefbe4ccb89b2adb97c78b9cb"
+    productChargedContainers: "qmgr"
+    productMetric: "FREE"
+# When PodDisruptionBudget is enabled, helm will initially configure the
+# annotations to the values in 'license_when_replica_or_standby' below. At
+# runtime the label-applying sidecar container will apply the appropriate
+# set as annotations depending upon whether the NativeHA or MultiInstance qmgr pod is
+# the Active (annotations) or a Replica/Standby (license_when_replica_or_standby).
+  license_when_replica_or_standby:
+    productName: "IBM MQ Advanced for Developers"
+    productID: "2f886a3eefbe4ccb89b2adb97c78b9cb"
+    productChargedContainers: "qmgr"
+    productMetric: "FREE"
+#
+# If you are licensing for IBM MQ Advanced (with PDB), then you will need
+# the following sets of annotations for initialisation, standby and active
+#  annotations:
+#    productName: "IBM MQ Advanced"
+#    productID: "208423bb063c43288328b1d788745b0c"
+#    productChargedContainers: "qmgr"
+#    productMetric: "VIRTUAL_PROCESSOR_CORE"
+#  license_when_replica_or_standby:
+#    productName: "IBM MQ Native HA Replica"
+#    productID: "0d8c5097de514a3db4d8cb3b140a7957"
+#    productChargedContainers: "qmgr"
+#    productMetric: "FREE"
+#
+route:
+  openShiftRoute:
+    webconsole: true
+    mqtraffic: true
